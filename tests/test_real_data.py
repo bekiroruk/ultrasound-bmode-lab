@@ -1,11 +1,10 @@
 import importlib.util
-from pathlib import Path
 import unittest
+from pathlib import Path
 
 import numpy as np
 
 from ultrasound_bmode.real_data import _select_angles
-
 
 DATASET = Path("data/raw/PICMUS_carotid_cross.uff")
 HAS_H5PY = importlib.util.find_spec("h5py") is not None
@@ -52,4 +51,3 @@ class InstalledDatasetTests(unittest.TestCase):
         )
         self.assertTrue(np.isfinite(result.bmode_db).all())
         self.assertEqual(result.angle_indices.size, 1)
-

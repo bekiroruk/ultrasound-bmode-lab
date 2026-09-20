@@ -1,6 +1,6 @@
 """Quantitative ultrasound image-quality metrics."""
 
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 
 import numpy as np
 
@@ -80,4 +80,3 @@ def evaluate_cyst(
         target_mean=target_mean,
         background_mean=background_mean,
     )
-

@@ -5,8 +5,8 @@ import json
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-from matplotlib.patches import Circle
 import numpy as np
+from matplotlib.patches import Circle
 
 from .config import ImagingConfig
 from .pipeline import BModeResult, run_pipeline

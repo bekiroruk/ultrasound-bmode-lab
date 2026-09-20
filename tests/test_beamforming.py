@@ -15,7 +15,7 @@ class BeamformingTests(unittest.TestCase):
         target_depth = 20e-3
         for element_index, element_x in enumerate(config.element_positions_m):
             delay = (target_depth + np.hypot(element_x, target_depth)) / config.sound_speed_m_s
-            sample = int(round(delay * config.sampling_frequency_hz))
+            sample = round(delay * config.sampling_frequency_hz)
             channel[0, element_index, sample] = 1.0
         beamformed = delay_and_sum(channel, config)
         estimated_depth = config.depth_axis_m[np.argmax(beamformed[:, 0])]
