@@ -1,148 +1,222 @@
+<div align="center">
+
 # Ultrasound B-mode Lab
 
+### Real RF channel data → Delay-and-Sum → Coherent Plane-Wave Compounding → B-mode
+
 [![CI](https://github.com/bekiroruk/ultrasound-bmode-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/bekiroruk/ultrasound-bmode-lab/actions/workflows/ci.yml)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Dataset: PICMUS](https://img.shields.io/badge/Dataset-PICMUS-7B2CBF)](https://doi.org/10.5281/zenodo.20261898)
+[![Data License: CC BY 4.0](https://img.shields.io/badge/Data-CC%20BY%204.0-2B9348)](https://creativecommons.org/licenses/by/4.0/)
+[![Code License: MIT](https://img.shields.io/badge/Code-MIT-F4A261)](LICENSE)
 
-A transparent, testable ultrasound imaging project that reconstructs **real in-vivo carotid RF channel data** and compares single-angle delay-and-sum with coherent plane-wave compounding. It is intentionally built from first principles with NumPy/SciPy instead of hiding reconstruction behind a deep-learning model. A synthetic phantom remains available for controlled verification tests.
+An inspectable ultrasound image-formation pipeline built from first principles.
+It reconstructs public **in-vivo human carotid RF channel data** and measures how
+single-angle DAS and multi-angle CPWC approach the dataset's 75-angle reference.
 
-> **Scope:** Educational/research software. It is not a medical device and must not be used for diagnosis or clinical decision-making.
+> Research and educational software only. This repository is not a medical device
+> and must not be used for diagnosis or clinical decision-making.
 
-![PICMUS in-vivo carotid reconstructed from real device data](artifacts/real_data/picmus_carotid_75_angle.png)
+</div>
 
-The [reconstruction comparison](artifacts/real_data/picmus_reconstruction_comparison.png)
-shows measured RF, our single-angle DAS, our 11-angle CPWC, and the dataset's
-75-angle reference. The implemented 11-angle result reaches a normalized dB-image
-correlation of **0.778** with the 75-angle reference.
+<p align="center">
+  <img src="artifacts/real_data/picmus_carotid_75_angle.png"
+       alt="PICMUS in-vivo carotid B-mode reconstruction" width="720">
+</p>
 
-## Why this project
+## Result at a glance
 
-The repository demonstrates the complete algorithm chain expected in ultrasound imaging work:
+| Item | Value |
+|---|---:|
+| Acquisition | PICMUS in-vivo carotid cross-section |
+| Raw tensor | 75 transmissions × 128 elements × 1,536 RF samples |
+| Steering range | −16° to +16° |
+| Sampling frequency | 20.832 MHz |
+| Implemented reconstruction | Fractional-delay DAS + 11-angle CPWC |
+| Reference | UFF 75-angle compounded image |
+| 11-angle/reference correlation | **0.778** |
+| RMSE in normalized dB space | **9.59 dB** |
+| Automated tests | **13 passing** with the installed dataset |
+
+<p align="center">
+  <img src="artifacts/real_data/picmus_reconstruction_comparison.png"
+       alt="Measured RF, single-angle DAS, 11-angle CPWC and 75-angle reference"
+       width="920">
+</p>
+
+The comparison above contains, in reading order:
+
+1. measured receive-channel RF for the 0° transmission;
+2. our single-angle delay-and-sum reconstruction;
+3. our coherent reconstruction from 11 selected steering angles; and
+4. the 75-angle reference stored in the public UFF file.
+
+## What this demonstrates
+
+- Loading real UFF/HDF5 acquisition data without discarding scanner metadata
+- Plane-wave transmit and element-dependent receive time-of-flight calculation
+- Linear interpolation for fractional-sample delays
+- Depth-dependent F-number aperture with cosine apodization
+- Coherent compounding over configurable steering-angle subsets
+- Hilbert-envelope detection and 60 dB log compression
+- Reproducible dataset download with size and MD5 verification
+- Quantitative comparison against a published reference reconstruction
+- Controlled cyst and point-target simulations for tests with known ground truth
+- Requirements-to-test traceability and automated CI
+
+## Processing pipeline
 
 ```mermaid
 flowchart LR
-    A[Real PICMUS UFF data] --> B[75 × 128 RF channels]
-    B --> C[Fractional-delay DAS]
-    C --> D[Hilbert envelope]
-    D --> E[Coherent angle compounding]
-    E --> F[Log compression]
-    F --> G[Reference comparison]
+    A[Public PICMUS UFF] --> B[RF tensor<br/>75 × 128 × 1536]
+    B --> C[Transmit + receive<br/>time of flight]
+    C --> D[Fractional-delay<br/>interpolation]
+    D --> E[Dynamic aperture<br/>and apodization]
+    E --> F[Delay-and-sum]
+    F --> G[Coherent angle<br/>compounding]
+    G --> H[Hilbert envelope]
+    H --> I[60 dB log<br/>compression]
+    I --> J[Reference metrics<br/>and figures]
 ```
 
-- Real 75-angle, 128-element plane-wave channel data from a human carotid acquisition
-- Fractional-delay dynamic receive beamforming with an F-number aperture
-- Coherent plane-wave compounding, envelope detection, and dynamic-range compression
-- Reproducible download with Zenodo size and MD5 integrity checks
-- Dataset reference comparison with correlation and RMSE reporting
-- Synthetic cyst and point-target phantoms for controlled algorithm verification
-- Typed configuration, command-line interface, unit tests, and GitHub Actions CI
-- A requirements-to-test [verification and traceability plan](docs/verification-plan.md)
+For a pixel at `(x, z)`, receive element `e`, and plane-wave angle `θ`, the
+implemented delay is
+
+```text
+t(x, z, e, θ) = [x sin(θ) + z cos(θ) + √((x − xₑ)² + z²)] / c
+```
+
+where `c = 1540 m/s`. The RF signal is sampled at this delay using linear
+interpolation. Valid receive elements are weighted by a depth-dependent aperture,
+summed coherently, and then compounded across transmission angles.
 
 ## Quick start
 
 ```bash
+git clone https://github.com/bekiroruk/ultrasound-bmode-lab.git
+cd ultrasound-bmode-lab
+
 python -m venv .venv
-# Windows: .venv\Scripts\activate
-# Linux/macOS: source .venv/bin/activate
+
+# Windows
+.venv\Scripts\activate
+
+# Linux/macOS
+source .venv/bin/activate
+
 python -m pip install -e ".[dev]"
 python scripts/download_picmus.py
 ultrasound-real --output-dir artifacts/real_data --angles 11
 python -m unittest discover -s tests -v
 ```
 
-The real-data command writes:
+`download_picmus.py` retrieves the 76.7 MB file from the immutable Zenodo record,
+then validates its published size and MD5 checksum. Raw human data remains outside
+Git under `data/raw/`.
 
-- `picmus_carotid_75_angle.png` — clean in-vivo carotid B-mode reference
-- `picmus_reconstruction_comparison.png` — measured RF and 1/11/75-angle comparison
-- `real_data_metrics.json` — acquisition metadata, provenance, and similarity measurements
+### Generated real-data artifacts
 
-## Real dataset
+| File | Purpose |
+|---|---|
+| `picmus_carotid_75_angle.png` | Clean reference B-mode image |
+| `picmus_reconstruction_comparison.png` | RF and 1/11/75-angle comparison |
+| `real_data_metrics.json` | Acquisition, provenance and similarity metrics |
 
-The project uses the public **PICMUS in-vivo carotid cross-section** UFF file from
-the [USTB dataset catalog](https://unioslo.github.io/USTB/datasets.html), archived
-as [Zenodo DOI 10.5281/zenodo.20261898](https://doi.org/10.5281/zenodo.20261898)
-under CC BY 4.0. The 76.7 MB dataset is downloaded locally and is not committed to Git.
+## Dataset provenance
 
-The UFF metadata reports 75 steered plane waves from −16° to +16°, 128 receive
-elements, 1,536 RF samples per channel, a 20.832 MHz sampling frequency, and a
-1,540 m/s sound-speed assumption. See the complete
-[data provenance and citation record](docs/real-data-provenance.md).
+This project uses `PICMUS_carotid_cross.uff` from the
+[USTB public dataset catalog](https://unioslo.github.io/USTB/datasets.html),
+archived as [Zenodo DOI 10.5281/zenodo.20261898](https://doi.org/10.5281/zenodo.20261898)
+under **CC BY 4.0**.
 
-Required citation: H. Liebgott, A. Rodriguez-Molares, F. Cervenansky, J. A. Jensen,
-and O. Bernard, “Plane-Wave Imaging Challenge in Medical Ultrasound,” IEEE IUS,
-2016, doi: `10.1109/ULTSYM.2016.7728908`.
+The UFF file describes an in-vivo human carotid cross-section acquired with 75
+steered plane waves and a 128-element linear probe. Published descriptions identify
+the acquisition platform as a Verasonics Vantage 256 research scanner with an
+L11/L11-4v probe. Numerical reconstruction parameters are read directly from the
+UFF file.
 
-## Synthetic verification mode
+See [real-data provenance](docs/real-data-provenance.md) for the integrity values,
+acquisition metadata, handling notes and full citation.
 
-The deterministic simulator remains useful for tests with known ground truth:
+### Required dataset citation
+
+H. Liebgott, A. Rodriguez-Molares, F. Cervenansky, J. A. Jensen and O. Bernard,
+“Plane-Wave Imaging Challenge in Medical Ultrasound,” *2016 IEEE International
+Ultrasonics Symposium (IUS)*, pp. 1–4,
+doi: [10.1109/ULTSYM.2016.7728908](https://doi.org/10.1109/ULTSYM.2016.7728908).
+
+## Controlled verification mode
+
+Real data establish practical relevance; deterministic phantoms provide known
+ground truth for algorithm tests.
 
 ```bash
+# Speckle and anechoic cyst
 ultrasound-bmode --output-dir artifacts/synthetic
-```
 
-To explore array size and scan density:
-
-```bash
-ultrasound-bmode --elements 64 --lines 96 --seed 11
-```
-
-Generate a clean point-target image for inspecting the point-spread function:
-
-```bash
+# Isolated reflectors for point-spread-function inspection
 ultrasound-bmode --phantom resolution --elements 64 --lines 96 \
   --output-dir artifacts/resolution
 ```
 
-## Algorithm notes
+The synthetic pipeline covers band-limited RF generation, propagation delay,
+attenuation, noise, dynamic receive beamforming, TGC, scan conversion, contrast,
+CNR and generalized CNR.
 
-For a pixel at position **r** and receive element **e**, the delay-and-sum time is
+## Verification
+
+The test suite checks:
+
+- axial focusing of a known reflector;
+- RF envelope and log-compression behavior;
+- monotonic time-gain compensation;
+- contrast, CNR and gCNR directionality;
+- Nyquist and tensor-shape validation;
+- UFF dimensions and acquisition metadata;
+- finite reconstruction from measured RF data; and
+- reproducible steering-angle selection.
+
+The [verification and traceability plan](docs/verification-plan.md) maps algorithm
+requirements to their corresponding tests and acceptance criteria.
+
+## Repository structure
 
 ```text
-t(r, e) = (|r - r_tx| + |r - r_e|) / c
+ultrasound-bmode-lab/
+├── src/ultrasound_bmode/
+│   ├── real_data.py       # UFF reader and real plane-wave DAS/CPWC
+│   ├── real_cli.py        # Real-data figures and metric export
+│   ├── beamforming.py     # Synthetic dynamic delay-and-sum
+│   ├── simulation.py      # Cyst and point-target RF simulation
+│   ├── processing.py      # Envelope, TGC, compression, scan conversion
+│   ├── metrics.py         # Contrast, CNR and generalized CNR
+│   └── pipeline.py        # Synthetic end-to-end orchestration
+├── scripts/
+│   └── download_picmus.py # Verified Zenodo downloader
+├── tests/                 # Unit and installed-dataset tests
+├── docs/                  # Provenance and verification records
+├── artifacts/             # Reproducible figures and JSON results
+└── .github/workflows/     # Python 3.10/3.12 CI
 ```
 
-where `c = 1540 m/s`. RF samples are evaluated at fractional delays using linear interpolation. A depth-dependent receive aperture is selected using an F-number constraint, then Hanning apodization is applied before coherent summation.
+## Limitations and roadmap
 
-The analytic-signal magnitude gives the envelope. TGC compensates the simulated two-way attenuation before normalization and log compression. The default display range is 60 dB.
+Current reconstruction uses CPU NumPy, linear delay interpolation and a conventional
+cosine-apodized DAS baseline. The included 75-angle image is the dataset reference;
+our configurable implementation currently demonstrates the quality/compute trade-off
+with 1 and 11 angles.
 
-The cyst is evaluated with a circular target ROI and a surrounding annular background ROI:
+Planned engineering extensions:
 
-- **Contrast (dB):** ratio of mean target and background envelopes
-- **CNR:** mean separation normalized by combined variance
-- **gCNR:** one minus the overlap of target/background intensity histograms
-
-## Repository layout
-
-```text
-src/ultrasound_bmode/
-  real_data.py      UFF reader and real plane-wave DAS/CPWC
-  real_cli.py       Real-data comparison and provenance export
-  simulation.py     Point-scatterer phantom and RF acquisition
-  beamforming.py    Dynamic delay-and-sum reconstruction
-  processing.py     Envelope, TGC, compression, scan conversion
-  metrics.py        Contrast, CNR, and generalized CNR
-  pipeline.py       End-to-end orchestration
-  cli.py            Reproducible demo export
-scripts/             Verified public-dataset downloader
-tests/               Focused unit tests for signal-processing stages
-```
-
-## Engineering trade-offs and next steps
-
-The simulator is deliberately lightweight: it does not model nonlinear propagation, transducer impulse-response calibration, refraction, or tissue motion. That boundary keeps each algorithm inspectable and the demo runnable on a laptop.
-
-Good extensions for real acquisition data are:
-
-1. Import a public PICMUS/USTB dataset and compare reconstruction against a reference.
-2. Add coherent plane-wave compounding and contrast-optimized beamformers (DMAS/MVDR).
-3. Profile the pipeline, then port the delay kernel to Numba/CUDA or C++.
-4. Add axial/lateral resolution and speckle SNR measurements from phantom data.
-5. Introduce requirements-to-test traceability suitable for a medical-device software lifecycle.
-
-## Reproducibility
-
-All random sources use explicit seeds. Physical quantities are stored in SI units internally and labeled units are used at display boundaries. Tests cover delay focusing, signal envelopes, TGC behavior, compression range, metric directionality, and parameter validation.
+1. benchmark 1, 3, 11, 31 and 75 angles with runtime/quality curves;
+2. add DMAS and MVDR baselines on the same measured channels;
+3. introduce axial/lateral resolution and speckle-SNR phantom measurements;
+4. accelerate the delay kernel with Numba/CUDA or C++;
+5. add registered carotid ROIs and uncertainty-aware image-quality metrics; and
+6. expand lifecycle documentation toward medical-device software practices.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+Source code is released under the [MIT License](LICENSE). The PICMUS/USTB data is
+not redistributed by this repository and remains subject to its own CC BY 4.0
+license and attribution requirements.
