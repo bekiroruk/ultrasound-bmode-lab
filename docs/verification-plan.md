@@ -17,6 +17,9 @@ The software reconstructs educational B-mode images from simulated RF channel da
 | ALG-005 | Bound the displayed image to the configured dynamic range. | `test_log_compression_range_and_peak` | Peak is 0 dB; floor is the configured negative limit. |
 | ALG-006 | Quantify a low-echo cyst relative to its background. | `test_cyst_metrics_detect_low_echo_region` | Contrast is negative, CNR > 1, and gCNR is in `[0, 1]` for the controlled fixture. |
 | ALG-007 | Reject malformed channel-data dimensions. | `test_beamformer_rejects_wrong_shape` | Reconstruction fails before numerical processing. |
+| DATA-001 | Preserve the published UFF acquisition dimensions and metadata. | `test_uff_dimensions_and_metadata` | 75 × 128 × 1,536 RF tensor, 20.832 MHz sampling, and 609 × 387 reference grid. |
+| ALG-008 | Produce finite B-mode output from measured RF channel data. | `test_coarse_real_reconstruction_is_finite` | Every reconstructed dB sample is finite. |
+| DATA-002 | Use reproducible steering-angle subsets. | `AngleSelectionTests` | Single-angle selects 0°; multi-angle selection includes both published extremes. |
 
 ## Reproducibility controls
 
@@ -44,4 +47,3 @@ The software reconstructs educational B-mode images from simulated RF channel da
 4. Confirm that `bmode_demo.png` and `metrics.json` are produced.
 5. Inspect the point targets, the cyst ROI, and the depth profile for gross artifacts.
 6. Compare metric JSON values with an approved baseline using stated tolerances.
-

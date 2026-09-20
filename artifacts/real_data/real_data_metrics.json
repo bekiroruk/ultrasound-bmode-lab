@@ -1,0 +1,14 @@
+{
+  "dataset_name": "PICMUS challenge in vivo carotid cross",
+  "source": "USTB/PICMUS via Zenodo",
+  "doi": "10.5281/zenodo.20261898",
+  "license": "CC BY 4.0",
+  "citation": "H. Liebgott, A. Rodriguez-Molares, F. Cervenansky, J. A. Jensen and O. Bernard, Plane-Wave Imaging Challenge in Medical Ultrasound, 2016 IEEE International Ultrasonics Symposium (IUS), Tours, 2016, pp. 1-4. doi: 10.1109/ULTSYM.2016.7728908",
+  "sampling_frequency_hz": 20832000.0,
+  "sound_speed_m_s": 1540.0,
+  "receive_elements": 128,
+  "available_plane_waves": 75,
+  "implemented_compounding_angles": 11,
+  "reference_correlation": 0.7781331700951045,
+  "rmse_db": 9.58805224006731
+}
