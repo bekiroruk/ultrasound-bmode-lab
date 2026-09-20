@@ -51,6 +51,17 @@ def make_cyst_phantom(
     )
 
 
+def make_resolution_phantom(config: ImagingConfig) -> Phantom:
+    """Create isolated point targets for visualizing axial/lateral resolution."""
+    requested_x = np.array([-8e-3, -4e-3, 0.0, 4e-3, 8e-3, 0.0, 0.0])
+    lines = config.line_positions_m
+    # Align targets to acquired scan lines so the reference geometry is exact.
+    x = np.array([lines[np.argmin(np.abs(lines - value))] for value in requested_x])
+    z = np.array([12e-3, 20e-3, 28e-3, 36e-3, 44e-3, 16e-3, 40e-3])
+    amplitude = np.ones_like(x)
+    return Phantom(x_m=x, z_m=z, amplitude=amplitude)
+
+
 def _pulse(config: ImagingConfig) -> tuple[np.ndarray, np.ndarray]:
     half_duration = 2.5 / config.center_frequency_hz
     t = np.arange(
@@ -83,12 +94,16 @@ def simulate_channel_data(
     for line_index, line_x in enumerate(lines):
         rf = channel[line_index]
         for sx, sz, reflectivity in zip(phantom.x_m, phantom.z_m, phantom.amplitude):
-            beam_width = 0.7e-3 + sz / (2.0 * config.f_number)
+            beam_width = 0.6e-3 + sz / (6.0 * config.f_number)
             tx_sensitivity = np.exp(-0.5 * ((sx - line_x) / beam_width) ** 2)
             if tx_sensitivity < 1e-5:
                 continue
 
-            tx_distance = np.hypot(sx - line_x, sz)
+            # Each acquisition is a focused scan line. The transmit-delay origin
+            # therefore follows the line axis; lateral rejection is represented
+            # by the transmit sensitivity above. This matches the reconstruction
+            # model, whose on-axis transmit path is the pixel depth.
+            tx_distance = sz
             rx_distance = np.hypot(sx - elements, sz)
             total_distance = tx_distance + rx_distance
             center_samples = np.rint(
@@ -115,4 +130,3 @@ def simulate_channel_data(
     rng = np.random.default_rng(seed)
     channel += rng.normal(0.0, noise_std, channel.shape).astype(np.float32)
     return channel
-

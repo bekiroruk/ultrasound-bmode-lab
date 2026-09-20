@@ -22,7 +22,7 @@ class BModeResult:
     beamformed_rf: np.ndarray
     envelope: np.ndarray
     bmode_db: np.ndarray
-    metrics: QualityMetrics
+    metrics: QualityMetrics | None
     phantom: Phantom
     config: ImagingConfig
 
@@ -31,11 +31,13 @@ def run_pipeline(
     config: ImagingConfig | None = None,
     phantom: Phantom | None = None,
     seed: int = 7,
+    noise_std: float = 0.004,
+    evaluate_cyst_roi: bool = True,
 ) -> BModeResult:
     """Simulate acquisition, reconstruct B-mode, and evaluate the cyst."""
     config = config or ImagingConfig()
     phantom = phantom or make_cyst_phantom(config, seed=seed)
-    channel = simulate_channel_data(phantom, config, seed=seed + 12)
+    channel = simulate_channel_data(phantom, config, noise_std=noise_std, seed=seed + 12)
     rf = delay_and_sum(channel, config)
     envelope = envelope_detect(rf)
     compensated = time_gain_compensation(
@@ -45,6 +47,9 @@ def run_pipeline(
         config.tgc_db_cm_mhz,
     )
     bmode_db = scan_convert_linear(log_compress(compensated, config.dynamic_range_db))
-    metrics = evaluate_cyst(compensated, config.line_positions_m, config.depth_axis_m)
+    metrics = (
+        evaluate_cyst(compensated, config.line_positions_m, config.depth_axis_m)
+        if evaluate_cyst_roi
+        else None
+    )
     return BModeResult(channel, rf, compensated, bmode_db, metrics, phantom, config)
-

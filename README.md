@@ -8,7 +8,11 @@ A transparent, testable ultrasound imaging project that turns synthetic RF chann
 
 > **Scope:** Educational/research software. It is not a medical device and must not be used for diagnosis or clinical decision-making.
 
-![B-mode reconstruction and depth profile](artifacts/bmode_demo.png)
+![High-resolution B-mode reconstruction](artifacts/bmode_clean.png)
+
+The complete observable signal chain is also exported as
+[`artifacts/pipeline_stages.png`](artifacts/pipeline_stages.png); the isolated-reflector
+phantom provides a separate point-spread-function sanity check.
 
 ## Why this project
 
@@ -52,6 +56,13 @@ To explore array size and scan density:
 
 ```bash
 ultrasound-bmode --elements 64 --lines 96 --seed 11
+```
+
+Generate a clean point-target image for inspecting the point-spread function:
+
+```bash
+ultrasound-bmode --phantom resolution --elements 64 --lines 96 \
+  --output-dir artifacts/resolution
 ```
 
 ## Algorithm notes
