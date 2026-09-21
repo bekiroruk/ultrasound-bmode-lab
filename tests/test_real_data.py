@@ -4,7 +4,7 @@ from pathlib import Path
 
 import numpy as np
 
-from ultrasound_bmode.real_data import _select_angles
+from ultrasound_bmode.real_data import _select_angles, beamform_plane_wave
 
 DATASET = Path("data/raw/PICMUS_carotid_cross.uff")
 HAS_H5PY = importlib.util.find_spec("h5py") is not None
@@ -23,6 +23,11 @@ class AngleSelectionTests(unittest.TestCase):
     def test_invalid_angle_count_is_rejected(self):
         with self.assertRaises(ValueError):
             _select_angles(75, 76)
+
+    def test_single_plane_wave_rejects_invalid_index(self):
+        acquisition = type("Acquisition", (), {"transmit_angles_rad": np.zeros(2)})()
+        with self.assertRaises(IndexError):
+            beamform_plane_wave(acquisition, 2, np.zeros(1), np.ones(1))
 
 
 @unittest.skipUnless(HAS_H5PY and DATASET.is_file(), "PICMUS UFF dataset not installed")

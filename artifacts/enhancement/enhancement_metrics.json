@@ -1,0 +1,34 @@
+{
+  "angle_count": 11,
+  "estimated_center_frequency_hz": 4679062.499999999,
+  "adaptive_dynamic_range_db": 45.0,
+  "tgc_gain_min_db": -12.177805992959112,
+  "tgc_gain_max_db": 16.04749544125895,
+  "enhancement_runtime_seconds": 3.7710325000225566,
+  "similarity_to_uff_reference": {
+    "baseline": {
+      "correlation": 0.7781331700951047,
+      "rmse_db": 9.58805224006731,
+      "ssim": 0.2711851463908854,
+      "psnr_db": 15.928417175636291
+    },
+    "rf_preprocessed": {
+      "correlation": 0.778409343875511,
+      "rmse_db": 9.46617408579047,
+      "ssim": 0.2723547893473134,
+      "psnr_db": 16.03953526743992
+    },
+    "auto_tgc_adaptive_dr": {
+      "correlation": 0.5233312712874167,
+      "rmse_db": 19.9402962794592,
+      "ssim": 0.23637884282692975,
+      "psnr_db": 9.568392869405573
+    },
+    "edge_preserving_despeckle": {
+      "correlation": 0.571419489409742,
+      "rmse_db": 19.62536092059656,
+      "ssim": 0.22878133340757176,
+      "psnr_db": 9.706671959829324
+    }
+  }
+}

@@ -9,6 +9,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
+from .metrics import evaluate_similarity
 from .real_data import (
     UFFAcquisition,
     load_picmus_uff,
@@ -130,9 +131,13 @@ def similarity_metrics(acquisition: UFFAcquisition, result) -> dict[str, float]:
     columns = min(reference.shape[1], candidate.shape[1])
     reference = reference[:rows, :columns]
     candidate = candidate[:rows, :columns]
-    correlation = float(np.corrcoef(reference.ravel(), candidate.ravel())[0, 1])
-    rmse_db = float(np.sqrt(np.mean((reference - candidate) ** 2)))
-    return {"reference_correlation": correlation, "rmse_db": rmse_db}
+    metrics = evaluate_similarity(reference, candidate)
+    return {
+        "reference_correlation": metrics.correlation,
+        "rmse_db": metrics.rmse_db,
+        "ssim": metrics.ssim,
+        "psnr_db": metrics.psnr_db,
+    }
 
 
 def main() -> None:

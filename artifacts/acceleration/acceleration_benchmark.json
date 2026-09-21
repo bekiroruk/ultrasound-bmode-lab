@@ -1,0 +1,35 @@
+{
+  "numba_compilation_seconds_excluded_from_runtime": 3.8953669000184163,
+  "backend_status": {
+    "numpy": "available",
+    "numba_cpu": "available",
+    "numba_cuda": "unavailable: no CUDA device",
+    "cpp_openmp": "unavailable: optional library not built"
+  },
+  "records": [
+    {
+      "angle_count": 1,
+      "numpy_seconds": 0.6872938000014983,
+      "numba_seconds": 0.025070300034713,
+      "speedup": 27.414661932639543,
+      "bmode_correlation": 1.0,
+      "bmode_rmse_db": 2.2545103671919694e-13
+    },
+    {
+      "angle_count": 11,
+      "numpy_seconds": 7.195175800006837,
+      "numba_seconds": 0.22139880002941936,
+      "speedup": 32.4987118225155,
+      "bmode_correlation": 1.0,
+      "bmode_rmse_db": 7.576260814145764e-13
+    },
+    {
+      "angle_count": 75,
+      "numpy_seconds": 48.625652299961075,
+      "numba_seconds": 2.228653700032737,
+      "speedup": 21.81839749228281,
+      "bmode_correlation": 1.0,
+      "bmode_rmse_db": 4.2478138417186413e-13
+    }
+  ]
+}

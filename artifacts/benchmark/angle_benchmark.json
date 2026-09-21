@@ -1,0 +1,57 @@
+[
+  {
+    "angle_count": 1,
+    "runtime_seconds": 1.0210345000377856,
+    "frames_per_second": 0.9793988351647205,
+    "working_set_mb": 193.26953125,
+    "working_set_delta_mb": 1.80078125,
+    "reference_correlation": 0.7743805040765183,
+    "rmse_db": 11.064487044646912,
+    "ssim": 0.16023991121389422,
+    "psnr_db": 14.684399315418057
+  },
+  {
+    "angle_count": 3,
+    "runtime_seconds": 2.7522969000274315,
+    "frames_per_second": 0.36333289478690806,
+    "working_set_mb": 196.12890625,
+    "working_set_delta_mb": 2.33203125,
+    "reference_correlation": 0.7467834994838082,
+    "rmse_db": 11.900866986621729,
+    "ssim": 0.12656158834392614,
+    "psnr_db": 14.051452983536175
+  },
+  {
+    "angle_count": 11,
+    "runtime_seconds": 4.249255099974107,
+    "frames_per_second": 0.23533536501635158,
+    "working_set_mb": 194.75390625,
+    "working_set_delta_mb": -0.44921875,
+    "reference_correlation": 0.7781331700951047,
+    "rmse_db": 9.58805224006731,
+    "ssim": 0.2711851463908854,
+    "psnr_db": 15.928417175636291
+  },
+  {
+    "angle_count": 31,
+    "runtime_seconds": 12.157049799978267,
+    "frames_per_second": 0.0822567988494863,
+    "working_set_mb": 196.59375,
+    "working_set_delta_mb": 1.8359375,
+    "reference_correlation": 0.805741296696423,
+    "rmse_db": 8.376317412767524,
+    "ssim": 0.40322748393640984,
+    "psnr_db": 17.101962484301264
+  },
+  {
+    "angle_count": 75,
+    "runtime_seconds": 59.54634669999359,
+    "frames_per_second": 0.01679364151487244,
+    "working_set_mb": 196.99609375,
+    "working_set_delta_mb": 1.328125,
+    "reference_correlation": 0.8153502796553143,
+    "rmse_db": 8.074161850128178,
+    "ssim": 0.4617011281435922,
+    "psnr_db": 17.42107599196092
+  }
+]

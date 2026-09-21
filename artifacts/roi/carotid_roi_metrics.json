@@ -1,0 +1,65 @@
+{
+  "angle_count": 75,
+  "registration_shift_pixels": {
+    "axial": 0.0,
+    "lateral": 0.0
+  },
+  "lumen_roi": {
+    "center_x_mm": -2.490859478712082,
+    "center_z_mm": 19.19354870915413,
+    "radius_mm": 2.2
+  },
+  "reference": {
+    "metrics": {
+      "contrast_db": {
+        "estimate": -19.372502954494824,
+        "ci95": [
+          -20.892660220544464,
+          -17.705581251345876
+        ]
+      },
+      "cnr": {
+        "estimate": 0.594151621538826,
+        "ci95": [
+          0.5643058785347178,
+          0.6250581823454953
+        ]
+      },
+      "generalized_cnr": {
+        "estimate": 0.5740148686207307,
+        "ci95": [
+          0.5422819474994459,
+          0.6125593061026139
+        ]
+      }
+    },
+    "wall_edge_sharpness_db_per_mm": 20.456090927124023
+  },
+  "our_registered_cpwc": {
+    "metrics": {
+      "contrast_db": {
+        "estimate": -15.71931958735916,
+        "ci95": [
+          -16.853528526641806,
+          -14.60627334089756
+        ]
+      },
+      "cnr": {
+        "estimate": 0.5801381635055858,
+        "ci95": [
+          0.5424990805412186,
+          0.6195202103106694
+        ]
+      },
+      "generalized_cnr": {
+        "estimate": 0.60561814756083,
+        "ci95": [
+          0.5441462265759545,
+          0.6476203492932288
+        ]
+      }
+    },
+    "wall_edge_sharpness_db_per_mm": 23.767115541716596
+  },
+  "uncertainty_note": "Pixel bootstrap CI; spatial correlation is not modelled."
+}

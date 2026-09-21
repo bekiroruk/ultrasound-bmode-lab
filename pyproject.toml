@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ultrasound-bmode-lab"
-version = "0.1.0"
-description = "A transparent ultrasound B-mode imaging pipeline from synthetic RF channel data to quantitative image-quality metrics."
+version = "0.2.0"
+description = "Measured-RF ultrasound beamforming, phantom validation, quality metrics, and acceleration."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
@@ -15,14 +15,22 @@ dependencies = [
   "scipy>=1.10",
   "matplotlib>=3.7",
   "h5py>=3.11",
+  "psutil>=5.9",
 ]
 
 [project.optional-dependencies]
 dev = ["pytest>=7", "ruff>=0.5"]
+accelerated = ["numba>=0.60"]
 
 [project.scripts]
 ultrasound-bmode = "ultrasound_bmode.cli:main"
 ultrasound-real = "ultrasound_bmode.real_cli:main"
+ultrasound-benchmark = "ultrasound_bmode.benchmark_cli:main"
+ultrasound-adaptive = "ultrasound_bmode.advanced_cli:main"
+ultrasound-phantom = "ultrasound_bmode.phantom_cli:main"
+ultrasound-enhance = "ultrasound_bmode.enhancement_cli:main"
+ultrasound-accelerate = "ultrasound_bmode.acceleration_cli:main"
+ultrasound-roi = "ultrasound_bmode.roi_cli:main"
 
 
 [tool.setuptools.packages.find]

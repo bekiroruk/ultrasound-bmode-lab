@@ -1,4 +1,4 @@
-"""Download and integrity-check the public PICMUS in-vivo carotid dataset."""
+"""Download and integrity-check selected public PICMUS channel datasets."""
 
 from __future__ import annotations
 
@@ -7,10 +7,24 @@ import hashlib
 from pathlib import Path
 from urllib.request import urlopen
 
-
-URL = "https://zenodo.org/api/records/20261898/files/PICMUS_carotid_cross.uff/content"
-EXPECTED_SIZE = 76_705_680
-EXPECTED_MD5 = "be81dfc519d3f7c642ff60d85642f311"
+RECORD_API = "https://zenodo.org/api/records/20261898/files/{filename}/content"
+DATASETS = {
+    "carotid": (
+        "PICMUS_carotid_cross.uff",
+        76_705_680,
+        "be81dfc519d3f7c642ff60d85642f311",
+    ),
+    "contrast": (
+        "PICMUS_experiment_contrast_speckle.uff",
+        145_518_504,
+        "26bbfbbb702e90fe4fa9f1ab7d7fc065",
+    ),
+    "resolution": (
+        "PICMUS_experiment_resolution_distortion.uff",
+        145_518_524,
+        "e8a4487993222f28458aa88259345440",
+    ),
+}
 
 
 def file_md5(path: Path) -> str:
@@ -23,40 +37,43 @@ def file_md5(path: Path) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--dataset", choices=DATASETS, default="carotid")
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("data/raw/PICMUS_carotid_cross.uff"),
+        help="Override the default data/raw output path",
     )
     args = parser.parse_args()
-    args.output.parent.mkdir(parents=True, exist_ok=True)
+    filename, expected_size, expected_md5 = DATASETS[args.dataset]
+    output_path = args.output or Path("data/raw") / filename
+    output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    if args.output.exists():
+    if output_path.exists():
         valid = (
-            args.output.stat().st_size == EXPECTED_SIZE
-            and file_md5(args.output) == EXPECTED_MD5
+            output_path.stat().st_size == expected_size
+            and file_md5(output_path) == expected_md5
         )
         if valid:
-            print(f"Already present and verified: {args.output}")
+            print(f"Already present and verified: {output_path}")
             return
-        raise RuntimeError(f"Existing file failed integrity check: {args.output}")
+        raise RuntimeError(f"Existing file failed integrity check: {output_path}")
 
-    partial = args.output.with_suffix(args.output.suffix + ".part")
+    partial = output_path.with_suffix(output_path.suffix + ".part")
     digest = hashlib.md5(usedforsecurity=False)
     size = 0
     try:
-        with urlopen(URL) as response, partial.open("wb") as output:
+        with urlopen(RECORD_API.format(filename=filename)) as response, partial.open("wb") as output:
             while block := response.read(1024 * 1024):
                 output.write(block)
                 digest.update(block)
                 size += len(block)
-        if size != EXPECTED_SIZE or digest.hexdigest() != EXPECTED_MD5:
+        if size != expected_size or digest.hexdigest() != expected_md5:
             raise RuntimeError("Downloaded file failed the Zenodo size/checksum verification")
-        partial.replace(args.output)
+        partial.replace(output_path)
     finally:
         if partial.exists():
             partial.unlink()
-    print(f"Downloaded and verified: {args.output}")
+    print(f"Downloaded and verified: {output_path}")
 
 
 if __name__ == "__main__":

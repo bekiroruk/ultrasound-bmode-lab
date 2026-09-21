@@ -6,5 +6,6 @@ dist/
 build/
 *.egg-info/
 artifacts/*.npz
+artifacts/**/*.npz
+artifacts/**/*.npy
 data/raw/
-

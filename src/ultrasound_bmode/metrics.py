@@ -3,6 +3,7 @@
 from dataclasses import asdict, dataclass
 
 import numpy as np
+from scipy.ndimage import gaussian_filter
 
 
 @dataclass(frozen=True)
@@ -15,6 +16,59 @@ class QualityMetrics:
 
     def to_dict(self) -> dict[str, float]:
         return asdict(self)
+
+
+@dataclass(frozen=True)
+class SimilarityMetrics:
+    correlation: float
+    rmse_db: float
+    ssim: float
+    psnr_db: float
+
+    def to_dict(self) -> dict[str, float]:
+        return asdict(self)
+
+
+def evaluate_similarity(reference_db: np.ndarray, candidate_db: np.ndarray) -> SimilarityMetrics:
+    """Compare equally sampled normalized log-compressed B-mode images."""
+    reference = np.asarray(reference_db, dtype=float)
+    candidate = np.asarray(candidate_db, dtype=float)
+    if reference.shape != candidate.shape:
+        raise ValueError("reference and candidate images must have the same shape")
+    if reference.ndim != 2 or reference.size == 0:
+        raise ValueError("similarity metrics require non-empty 2D images")
+    if not np.isfinite(reference).all() or not np.isfinite(candidate).all():
+        raise ValueError("similarity metrics require finite images")
+
+    correlation = float(np.corrcoef(reference.ravel(), candidate.ravel())[0, 1])
+    rmse_db = float(np.sqrt(np.mean((reference - candidate) ** 2)))
+
+    # Both inputs are normalized dB images. Mapping their shared 60 dB display
+    # range to [0, 1] makes SSIM and PSNR directly comparable between runs.
+    low = min(float(reference.min()), float(candidate.min()), -60.0)
+    high = max(float(reference.max()), float(candidate.max()), 0.0)
+    scale = max(high - low, np.finfo(float).eps)
+    ref_unit = np.clip((reference - low) / scale, 0.0, 1.0)
+    cand_unit = np.clip((candidate - low) / scale, 0.0, 1.0)
+
+    mu_ref = gaussian_filter(ref_unit, sigma=1.5, mode="reflect")
+    mu_cand = gaussian_filter(cand_unit, sigma=1.5, mode="reflect")
+    sigma_ref = gaussian_filter(ref_unit**2, sigma=1.5, mode="reflect") - mu_ref**2
+    sigma_cand = gaussian_filter(cand_unit**2, sigma=1.5, mode="reflect") - mu_cand**2
+    covariance = (
+        gaussian_filter(ref_unit * cand_unit, sigma=1.5, mode="reflect")
+        - mu_ref * mu_cand
+    )
+    c1 = 0.01**2
+    c2 = 0.03**2
+    numerator = (2.0 * mu_ref * mu_cand + c1) * (2.0 * covariance + c2)
+    denominator = (mu_ref**2 + mu_cand**2 + c1) * (
+        sigma_ref + sigma_cand + c2
+    )
+    ssim = float(np.mean(numerator / np.maximum(denominator, np.finfo(float).eps)))
+    mse_unit = float(np.mean((ref_unit - cand_unit) ** 2))
+    psnr_db = float("inf") if mse_unit == 0.0 else float(-10.0 * np.log10(mse_unit))
+    return SimilarityMetrics(correlation, rmse_db, ssim, psnr_db)
 
 
 def circular_mask(

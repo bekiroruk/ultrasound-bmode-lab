@@ -4,5 +4,4 @@ from .config import ImagingConfig
 from .pipeline import BModeResult, run_pipeline
 
 __all__ = ["BModeResult", "ImagingConfig", "run_pipeline"]
-__version__ = "0.1.0"
-
+__version__ = "0.2.0"

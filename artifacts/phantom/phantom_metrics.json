@@ -1,0 +1,189 @@
+{
+  "dataset": "PICMUS experimental CIRS Multi-Purpose Ultrasound Phantom 040GSE",
+  "source_doi": "10.5281/zenodo.20261898",
+  "angle_count": 11,
+  "contrast_runtime_seconds": 4.061919900006615,
+  "resolution_runtime_seconds": 4.20467639999697,
+  "reference": {
+    "contrast": {
+      "cysts": {
+        "shallow_cyst": {
+          "contrast_db": -28.528406948942454,
+          "cnr": 1.725937441440612,
+          "generalized_cnr": 0.9755011837692088,
+          "target_mean": 0.10571419789450058,
+          "background_mean": 2.821978277392162
+        },
+        "deep_cyst": {
+          "contrast_db": -23.296962049750945,
+          "cnr": 1.6604002813533631,
+          "generalized_cnr": 0.9263762493896046,
+          "target_mean": 0.048878398208732514,
+          "background_mean": 0.7144388581899745
+        }
+      },
+      "speckle_snr": 1.8693343240108315
+    },
+    "resolution": {
+      "points": [
+        {
+          "nominal_x_mm": 0.0,
+          "nominal_z_mm": 10.0,
+          "detected_x_mm": -0.5195332923904061,
+          "detected_z_mm": 9.509408846497536,
+          "lateral_fwhm_mm": 0.6605077597599601,
+          "axial_fwhm_mm": 0.5736580029624474,
+          "position_error_mm": 0.7145589701325523
+        },
+        {
+          "nominal_x_mm": 0.0,
+          "nominal_z_mm": 20.0,
+          "detected_x_mm": -0.4209669423289597,
+          "detected_z_mm": 18.67607608437538,
+          "lateral_fwhm_mm": 0.6337010146432253,
+          "axial_fwhm_mm": 0.5319016074275817,
+          "position_error_mm": 1.3892399723937605
+        },
+        {
+          "nominal_x_mm": 0.0,
+          "nominal_z_mm": 30.0,
+          "detected_x_mm": -0.4209669423289597,
+          "detected_z_mm": 27.990592643618584,
+          "lateral_fwhm_mm": 0.6480870010450059,
+          "axial_fwhm_mm": 0.549190442243698,
+          "position_error_mm": 2.0530297344202157
+        },
+        {
+          "nominal_x_mm": -10.0,
+          "nominal_z_mm": 40.0,
+          "detected_x_mm": -10.573296807706356,
+          "detected_z_mm": 37.45295852422714,
+          "lateral_fwhm_mm": 0.6917462414694486,
+          "axial_fwhm_mm": 0.5606851578048508,
+          "position_error_mm": 2.610764161894651
+        },
+        {
+          "nominal_x_mm": 0.0,
+          "nominal_z_mm": 40.0,
+          "detected_x_mm": -0.22383432951755822,
+          "detected_z_mm": 37.52688318490982,
+          "lateral_fwhm_mm": 0.6865488107833604,
+          "axial_fwhm_mm": 0.5839707438771158,
+          "position_error_mm": 2.4832254404609286
+        },
+        {
+          "nominal_x_mm": 10.0,
+          "nominal_z_mm": 40.0,
+          "detected_x_mm": 9.829930029809475,
+          "detected_z_mm": 37.52688318490982,
+          "lateral_fwhm_mm": 0.7253477020644841,
+          "axial_fwhm_mm": 0.5919810693918102,
+          "position_error_mm": 2.4789575582979233
+        },
+        {
+          "nominal_x_mm": 0.0,
+          "nominal_z_mm": 50.0,
+          "detected_x_mm": -0.12526800855994225,
+          "detected_z_mm": 46.98924720287323,
+          "lateral_fwhm_mm": 0.674528154951265,
+          "axial_fwhm_mm": 0.5824939024754796,
+          "position_error_mm": 3.0133576753142433
+        }
+      ],
+      "median_lateral_fwhm_mm": 0.674528154951265,
+      "median_axial_fwhm_mm": 0.5736580029624474,
+      "position_rmse_mm": 2.2317055126232352
+    }
+  },
+  "our_cpwc": {
+    "contrast": {
+      "cysts": {
+        "shallow_cyst": {
+          "contrast_db": -14.756639423639035,
+          "cnr": 1.404424282224933,
+          "generalized_cnr": 0.8379044404122394,
+          "target_mean": 0.0003989619500392736,
+          "background_mean": 0.0021815413495183734
+        },
+        "deep_cyst": {
+          "contrast_db": -3.070127996630188,
+          "cnr": 0.40155639925106223,
+          "generalized_cnr": 0.2680448723205353,
+          "target_mean": 0.00016357536179975889,
+          "background_mean": 0.00023292939001994447
+        }
+      },
+      "speckle_snr": 1.7492812622801197
+    },
+    "resolution": {
+      "points": [
+        {
+          "nominal_x_mm": 0.0,
+          "nominal_z_mm": 10.0,
+          "detected_x_mm": -0.5195332923904061,
+          "detected_z_mm": 9.435484185814857,
+          "lateral_fwhm_mm": 0.5309903799676631,
+          "axial_fwhm_mm": 0.6942550288211481,
+          "position_error_mm": 0.767198114157699
+        },
+        {
+          "nominal_x_mm": 0.0,
+          "nominal_z_mm": 20.0,
+          "detected_x_mm": -0.5195332923904061,
+          "detected_z_mm": 18.602151423692703,
+          "lateral_fwhm_mm": 0.5359857741896971,
+          "axial_fwhm_mm": 0.6790389158097092,
+          "position_error_mm": 1.491273108517133
+        },
+        {
+          "nominal_x_mm": 0.0,
+          "nominal_z_mm": 30.0,
+          "detected_x_mm": -0.5195332923904061,
+          "detected_z_mm": 27.916667982935905,
+          "lateral_fwhm_mm": 0.5973959189322382,
+          "axial_fwhm_mm": 0.6674265290111392,
+          "position_error_mm": 2.147134633698213
+        },
+        {
+          "nominal_x_mm": -10.0,
+          "nominal_z_mm": 40.0,
+          "detected_x_mm": -10.376164689660072,
+          "detected_z_mm": 37.52688318490982,
+          "lateral_fwhm_mm": 0.7190518775657337,
+          "axial_fwhm_mm": 0.6635772630715353,
+          "position_error_mm": 2.5015608437191483
+        },
+        {
+          "nominal_x_mm": 0.0,
+          "nominal_z_mm": 40.0,
+          "detected_x_mm": -0.3224006504751742,
+          "detected_z_mm": 37.52688318490982,
+          "lateral_fwhm_mm": 0.6175079627709235,
+          "axial_fwhm_mm": 0.6663698158199671,
+          "position_error_mm": 2.4940426942032516
+        },
+        {
+          "nominal_x_mm": 10.0,
+          "nominal_z_mm": 40.0,
+          "detected_x_mm": 9.731363505125046,
+          "detected_z_mm": 37.67473250627518,
+          "lateral_fwhm_mm": 0.7719472063603007,
+          "axial_fwhm_mm": 0.6819677977426136,
+          "position_error_mm": 2.3407337490094906
+        },
+        {
+          "nominal_x_mm": 0.0,
+          "nominal_z_mm": 50.0,
+          "detected_x_mm": -0.12526800855994225,
+          "detected_z_mm": 46.84139788150787,
+          "lateral_fwhm_mm": 0.5987520708775431,
+          "axial_fwhm_mm": 0.7271452963405894,
+          "position_error_mm": 3.161085164450895
+        }
+      ],
+      "median_lateral_fwhm_mm": 0.5987520708775431,
+      "median_axial_fwhm_mm": 0.6790389158097092,
+      "position_rmse_mm": 2.247926825250987
+    }
+  }
+}

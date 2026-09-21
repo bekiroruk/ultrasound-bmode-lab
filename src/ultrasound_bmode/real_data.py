@@ -6,7 +6,15 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
+from scipy.signal import hilbert
 
+from .adaptive import (
+    coherence_factor,
+    delay_multiply_and_sum,
+    mvdr_spatial_smoothing,
+    normalized_das,
+    phase_coherence_factor,
+)
 from .processing import envelope_detect, log_compress
 
 
@@ -101,6 +109,85 @@ def _select_angles(total: int, count: int) -> np.ndarray:
     return np.unique(np.rint(np.linspace(0, total - 1, count)).astype(int))
 
 
+def beamform_plane_wave(
+    acquisition: UFFAcquisition,
+    angle_index: int,
+    x_axis_m: np.ndarray,
+    z_axis_m: np.ndarray,
+    f_number: float = 1.5,
+    method: str = "das",
+    mvdr_subarray_size: int = 16,
+    diagonal_loading: float = 0.05,
+) -> np.ndarray:
+    """Focus one measured plane-wave transmission onto a Cartesian grid."""
+    if not 0 <= angle_index < acquisition.transmit_angles_rad.size:
+        raise IndexError("angle_index is outside the acquired transmit sequence")
+    if f_number <= 0:
+        raise ValueError("f_number must be positive")
+    methods = {"das", "cf", "pcf", "dmas", "mvdr"}
+    if method not in methods:
+        raise ValueError(f"method must be one of {sorted(methods)}")
+
+    elements = acquisition.element_x_m
+    element_indices = np.arange(elements.size)[None, :]
+    angle = acquisition.transmit_angles_rad[angle_index]
+    real_angle_data = acquisition.channel_data[angle_index]
+    angle_data = (
+        hilbert(real_angle_data, axis=-1) if method in {"cf", "pcf", "mvdr"} else real_angle_data
+    )
+    output_dtype = complex if np.iscomplexobj(angle_data) else float
+    focused_image = np.zeros((z_axis_m.size, x_axis_m.size), dtype=output_dtype)
+
+    for x_index, x_position in enumerate(x_axis_m):
+        transmit_distance = x_position * np.sin(angle) + z_axis_m * np.cos(angle)
+        receive_distance = np.hypot(x_position - elements[None, :], z_axis_m[:, None])
+        sample_positions = (
+            (transmit_distance[:, None] + receive_distance)
+            / acquisition.sound_speed_m_s
+            - acquisition.initial_time_s
+        ) * acquisition.sampling_frequency_hz
+        lower = np.floor(sample_positions).astype(np.int64)
+        fraction = sample_positions - lower
+        valid = (lower >= 0) & (lower + 1 < angle_data.shape[-1])
+        safe_lower = np.clip(lower, 0, angle_data.shape[-1] - 2)
+        lower_values = angle_data[element_indices, safe_lower]
+        upper_values = angle_data[element_indices, safe_lower + 1]
+        delayed = lower_values * (1.0 - fraction) + upper_values * fraction
+
+        half_aperture = np.maximum(z_axis_m[:, None] / (2.0 * f_number), 1e-9)
+        normalized_offset = np.abs(elements[None, :] - x_position) / half_aperture
+        weights = np.where(
+            normalized_offset <= 1.0,
+            0.5 * (1.0 + np.cos(np.pi * normalized_offset)),
+            0.0,
+        )
+        weights *= valid
+        das = normalized_das(delayed, weights)
+        if method == "das":
+            focused = das
+        elif method == "cf":
+            focused = das * coherence_factor(delayed, weights)
+        elif method == "pcf":
+            focused = das * phase_coherence_factor(delayed, weights)
+        elif method == "dmas":
+            focused = delay_multiply_and_sum(delayed, weights)
+        else:
+            focused = np.array(
+                [
+                    mvdr_spatial_smoothing(
+                        row,
+                        row_weights,
+                        subarray_size=mvdr_subarray_size,
+                        diagonal_loading=diagonal_loading,
+                    )
+                    for row, row_weights in zip(delayed, weights, strict=True)
+                ]
+            )
+        focused_image[:, x_index] = focused
+
+    return focused_image
+
+
 def plane_wave_delay_and_sum(
     acquisition: UFFAcquisition,
     angle_count: int = 11,
@@ -108,6 +195,9 @@ def plane_wave_delay_and_sum(
     axial_stride: int = 2,
     f_number: float = 1.5,
     dynamic_range_db: float = 60.0,
+    method: str = "das",
+    mvdr_subarray_size: int = 16,
+    diagonal_loading: float = 0.05,
 ) -> PlaneWaveResult:
     """Reconstruct real RF data using coherent plane-wave compounding.
 
@@ -120,47 +210,23 @@ def plane_wave_delay_and_sum(
 
     x_axis = acquisition.x_axis_m[::lateral_stride]
     z_axis = acquisition.z_axis_m[::axial_stride]
-    elements = acquisition.element_x_m
-    element_indices = np.arange(elements.size)[None, :]
     angle_indices = _select_angles(acquisition.transmit_angles_rad.size, angle_count)
-    compounded = np.zeros((z_axis.size, x_axis.size), dtype=np.float64)
+    output_dtype = complex if method in {"cf", "pcf", "mvdr"} else float
+    compounded = np.zeros((z_axis.size, x_axis.size), dtype=output_dtype)
 
     for angle_index in angle_indices:
-        angle = acquisition.transmit_angles_rad[angle_index]
-        angle_data = acquisition.channel_data[angle_index]
-        for x_index, x_position in enumerate(x_axis):
-            transmit_distance = x_position * np.sin(angle) + z_axis * np.cos(angle)
-            receive_distance = np.hypot(x_position - elements[None, :], z_axis[:, None])
-            sample_positions = (
-                (transmit_distance[:, None] + receive_distance)
-                / acquisition.sound_speed_m_s
-                - acquisition.initial_time_s
-            ) * acquisition.sampling_frequency_hz
-            lower = np.floor(sample_positions).astype(np.int64)
-            fraction = sample_positions - lower
-            valid = (lower >= 0) & (lower + 1 < angle_data.shape[-1])
-            safe_lower = np.clip(lower, 0, angle_data.shape[-1] - 2)
-            lower_values = angle_data[element_indices, safe_lower]
-            upper_values = angle_data[element_indices, safe_lower + 1]
-            delayed = lower_values * (1.0 - fraction) + upper_values * fraction
-
-            half_aperture = np.maximum(z_axis[:, None] / (2.0 * f_number), 1e-9)
-            normalized_offset = np.abs(elements[None, :] - x_position) / half_aperture
-            weights = np.where(
-                normalized_offset <= 1.0,
-                0.5 * (1.0 + np.cos(np.pi * normalized_offset)),
-                0.0,
-            )
-            weights *= valid
-            normalizer = np.sum(weights, axis=1)
-            focused = np.divide(
-                np.sum(delayed * weights, axis=1),
-                normalizer,
-                out=np.zeros_like(normalizer),
-                where=normalizer > 0,
-            )
-            compounded[:, x_index] += focused
+        compounded += beamform_plane_wave(
+            acquisition,
+            int(angle_index),
+            x_axis,
+            z_axis,
+            f_number,
+            method,
+            mvdr_subarray_size,
+            diagonal_loading,
+        )
 
     compounded /= angle_indices.size
-    bmode = log_compress(envelope_detect(compounded), dynamic_range_db)
+    envelope = np.abs(compounded) if np.iscomplexobj(compounded) else envelope_detect(compounded)
+    bmode = log_compress(envelope, dynamic_range_db)
     return PlaneWaveResult(compounded, bmode, x_axis, z_axis, angle_indices)
