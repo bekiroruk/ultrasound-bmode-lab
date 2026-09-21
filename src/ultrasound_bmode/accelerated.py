@@ -7,7 +7,7 @@ import math
 import numpy as np
 
 from .processing import envelope_detect, log_compress
-from .real_data import PlaneWaveResult, UFFAcquisition, _select_angles
+from .real_data import PlaneWaveResult, UFFAcquisition, select_transmit_indices
 
 try:
     from numba import cuda, njit, prange
@@ -158,7 +158,7 @@ def numba_plane_wave_delay_and_sum(
     x_axis = np.ascontiguousarray(acquisition.x_axis_m[::lateral_stride])
     z_axis = np.ascontiguousarray(acquisition.z_axis_m[::axial_stride])
     angle_indices = np.ascontiguousarray(
-        _select_angles(acquisition.transmit_angles_rad.size, angle_count)
+        select_transmit_indices(acquisition.transmit_angles_rad, angle_count)
     )
     rf = _numba_das_kernel(
         np.ascontiguousarray(acquisition.channel_data),
@@ -190,7 +190,7 @@ def cuda_plane_wave_delay_and_sum(
     x_axis = np.ascontiguousarray(acquisition.x_axis_m[::lateral_stride])
     z_axis = np.ascontiguousarray(acquisition.z_axis_m[::axial_stride])
     angle_indices = np.ascontiguousarray(
-        _select_angles(acquisition.transmit_angles_rad.size, angle_count)
+        select_transmit_indices(acquisition.transmit_angles_rad, angle_count)
     )
     output_device = cuda.device_array((z_axis.size, x_axis.size), dtype=np.float64)
     threads = 128

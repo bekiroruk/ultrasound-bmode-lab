@@ -11,9 +11,9 @@
 [![Code: MIT](https://img.shields.io/badge/Code-MIT-F4A261)](LICENSE)
 
 An inspectable ultrasound image-formation laboratory built from first principles. It processes
-public **in-vivo human carotid** and **physical CIRS phantom** RF channel measurements, compares
-five beamformers, quantifies image quality, and accelerates conventional CPWC without changing
-its numerical result.
+public **in-vivo human carotid** and **physical phantom** RF channel measurements from USTB and
+EPFL, compares five beamformers, quantifies image quality, and accelerates conventional CPWC
+without changing its numerical result.
 
 > Research and educational software only. Not a medical device; not for diagnosis, treatment,
 > patient monitoring, or clinical decision-making.
@@ -29,7 +29,9 @@ its numerical result.
 
 | Item | Measured result |
 |---|---:|
-| Real acquisitions | In-vivo carotid + 2 physical CIRS phantom scans |
+| Real acquisitions | **4 human carotid + 3 physical phantom scans** |
+| Independent EPFL volunteers | **2** — public volunteer IDs 005 and 008 |
+| Probe/platform coverage | L11/L11-4v, GE 9L-D, and Alpinion L3-8 |
 | Raw carotid tensor | 75 transmissions × 128 elements × 1,536 RF samples |
 | Our 75-angle / UFF correlation | **0.815** |
 | Our 75-angle / UFF SSIM | **0.462** |
@@ -38,7 +40,8 @@ its numerical result.
 | Numba runtime, 75 angles | **2.229 s** on the measured host |
 | Physical phantom median lateral FWHM | **0.599 mm** — our 11-angle CPWC |
 | Physical phantom median axial FWHM | **0.679 mm** — our 11-angle CPWC |
-| Automated tests | **30 passing** with local datasets and acceleration extra |
+| External-study mean 11-angle correlation | **0.866** across four human acquisitions |
+| Automated tests | **35 passing** with local datasets and acceleration extra |
 
 Runtimes are hardware-dependent single-host measurements. Image metrics compare normalized
 display images and are research evidence, not clinical-performance claims.
@@ -108,6 +111,38 @@ From 11 angles onward, structural similarity improves consistently.
   <img src="artifacts/benchmark/angle_quality_runtime.png"
        alt="Angle count image quality and CPU runtime curves" width="820">
 </p>
+
+## External validation: subjects, views, and probes
+
+The same reconstruction code was next tested on five measured acquisitions: PICMUS carotid
+cross/longitudinal views, two explicitly distinct EPFL volunteers, and an Alpinion hypoechoic
+phantom. Physical steering-angle selection is independent of storage order, which matters for
+the alternating EPFL and Alpinion sequences.
+
+<p align="center">
+  <img src="artifacts/external_validation/external_validation_images.png"
+       alt="Measured RF external validation across carotid acquisitions and a physical phantom"
+       width="900">
+</p>
+
+| Acquisition | Case reference | 11-angle correlation | 11-angle SSIM |
+|---|---|---:|---:|
+| PICMUS carotid cross | Embedded UFF reference | 0.778 | 0.271 |
+| PICMUS carotid longitudinal | Embedded UFF reference | 0.783 | 0.365 |
+| EPFL volunteer 005 carotid | Our full 87-angle CPWC | **0.950** | 0.685 |
+| EPFL volunteer 008 carotid | Our full 87-angle CPWC | **0.954** | 0.759 |
+| Alpinion hypoechoic phantom | Our full 21-angle CPWC | 0.910 | **0.897** |
+
+<p align="center">
+  <img src="artifacts/external_validation/external_validation_metrics.png"
+       alt="Sparse-angle correlation across five measured RF acquisitions" width="850">
+</p>
+
+The EPFL and Alpinion references are full-angle reconstructions from the same acquisitions, so
+those rows measure sparse-angle stability rather than diagnostic accuracy. The PICMUS rows use
+independently stored UFF beamformed references. The mean 11-angle correlation across the four
+human acquisitions was 0.866; this aggregate mixes the two stated reference types and is reported
+only as a compact engineering summary.
 
 ## Physical phantom validation
 
@@ -192,11 +227,14 @@ python -m venv .venv
 # Linux/macOS
 source .venv/bin/activate
 
-python -m pip install -e ".[dev,accelerated]"
+python -m pip install -e ".[dev,accelerated,datasets]"
 
 python scripts/download_picmus.py --dataset carotid
+python scripts/download_picmus.py --dataset carotid-long
 python scripts/download_picmus.py --dataset contrast
 python scripts/download_picmus.py --dataset resolution
+python scripts/download_picmus.py --dataset alpinion
+python scripts/download_epfl.py --sample all
 
 ultrasound-real --output-dir artifacts/real_data --angles 11
 ultrasound-benchmark --output-dir artifacts/benchmark
@@ -205,27 +243,39 @@ ultrasound-phantom --output-dir artifacts/phantom --angles 11
 ultrasound-enhance --output-dir artifacts/enhancement --angles 11
 ultrasound-accelerate --output-dir artifacts/acceleration
 ultrasound-roi --output-dir artifacts/roi --angles 75
+ultrasound-external --output-dir artifacts/external_validation
 
 python -m unittest discover -s tests -v
 ```
 
-The downloader retrieves immutable Zenodo files and validates their published byte sizes and MD5
-values. Raw human and phantom RF remain ignored under `data/raw/`.
+The USTB downloader validates published byte sizes and MD5 values. The EPFL downloader uses HTTP
+range requests to extract only two selected samples from the large volunteer archives, then
+checks member size, ZIP CRC32, and recorded SHA-256. Raw human and phantom RF remain ignored
+under `data/raw/`.
 
 ## Dataset provenance
 
-All three measured datasets are distributed through the
+The PICMUS and Alpinion acquisitions are distributed through the
 [USTB public catalog](https://unioslo.github.io/USTB/datasets.html) and archived as
 [Zenodo DOI 10.5281/zenodo.20261898](https://doi.org/10.5281/zenodo.20261898) under **CC BY 4.0**.
 
 - `PICMUS_carotid_cross.uff`: in-vivo human carotid cross-section;
+- `PICMUS_carotid_long.uff`: in-vivo human carotid longitudinal view;
 - `PICMUS_experiment_contrast_speckle.uff`: physical CIRS contrast/speckle phantom;
-- `PICMUS_experiment_resolution_distortion.uff`: physical CIRS resolution/distortion phantom.
+- `PICMUS_experiment_resolution_distortion.uff`: physical CIRS resolution/distortion phantom;
+- `Alpinion_L3-8_CPWC_hypoechoic.uff`: physical hypoechoic phantom, Alpinion L3-8.
 
 The UFF files describe 75 steered plane waves and a 128-element linear probe. Published examples
 identify a Verasonics Vantage 256 research scanner and L11 probe. Numerical reconstruction values
 are read from the files. See [real-data provenance](docs/real-data-provenance.md) and
 [configuration traceability](docs/configuration-traceability.md).
+
+The [EPFL Ultrafast Ultrasound Dataset](https://www.epfl.ch/labs/lts5/research/us/epfl-ultrafast-ultrasound-datasets/)
+contains 20,000 in-vivo acquisitions from nine volunteers. This study deliberately selects one
+published carotid acquisition each from held-out volunteers 005 and 008: `invivo_14965.npz` and
+`invivo_18198.npz`. Both contain 87 plane-wave transmissions, 192 receive elements, and 2,133
+samples, acquired with a GE 9L-D probe. The public metadata contains volunteer identifiers but no
+direct identity fields.
 
 ### Required dataset citation
 
@@ -233,6 +283,10 @@ H. Liebgott, A. Rodriguez-Molares, F. Cervenansky, J. A. Jensen and O. Bernard,
 “Plane-Wave Imaging Challenge in Medical Ultrasound,” *2016 IEEE International Ultrasonics
 Symposium*, pp. 1–4, doi:
 [10.1109/ULTSYM.2016.7728908](https://doi.org/10.1109/ULTSYM.2016.7728908).
+
+R. Viñals and J.-P. Thiran, “Deep Learning-based Inpainting for Sparse Arrays in Ultrafast
+Ultrasound Imaging,” *IEEE Transactions on Computational Imaging*, 2025. See the EPFL dataset
+landing page for the authoritative citation and license statement.
 
 ## Verification and lifecycle evidence
 
@@ -252,6 +306,7 @@ IEC 62304, ISO 14971, ISO 13485, FDA, CE, UKCA, or other regulatory compliance.
 ultrasound-bmode-lab/
 ├── src/ultrasound_bmode/
 │   ├── real_data.py          # UFF loader and DAS/CPWC
+│   ├── epfl.py               # EPFL multi-volunteer RF adapter
 │   ├── adaptive.py           # CF, PCF, DMAS, MVDR
 │   ├── accelerated.py        # Numba CPU and CUDA kernels
 │   ├── native_backend.py     # Optional C++ bridge
@@ -260,7 +315,7 @@ ultrasound-bmode-lab/
 │   ├── roi.py                # Registration and uncertainty-aware carotid ROI
 │   └── *_cli.py              # Reproducible experiment commands
 ├── native/                   # Optional C++17/OpenMP DAS backend
-├── scripts/                  # Verified PICMUS downloader
+├── scripts/                  # Verified USTB and selective EPFL downloaders
 ├── tests/                    # Synthetic, real-data, metric and backend tests
 ├── docs/                     # Provenance, requirements, risk and verification records
 ├── artifacts/                # Versioned figures and machine-readable results
@@ -269,8 +324,12 @@ ultrasound-bmode-lab/
 
 ## Known limitations
 
-- One public in-vivo subject and one acquisition platform cannot establish generalization.
+- Four human acquisitions, including two explicitly distinct EPFL volunteers, remain too small
+  for population or clinical generalization; the public PICMUS subject relationship is unstated.
+- Human data still comes from research Verasonics workflows; multi-vendor human validation is
+  not yet demonstrated. Alpinion coverage is currently limited to a physical phantom.
 - The UFF image is an algorithmic reference, not anatomical or diagnostic ground truth.
+- EPFL/Alpinion sparse-angle metrics use same-acquisition full-angle CPWC references.
 - Constant sound speed, linear interpolation, and simplified receive modelling remain.
 - Deep phantom contrast is weak in the current 11-angle reconstruction.
 - Adaptive methods need parameter studies on independent acquisitions.

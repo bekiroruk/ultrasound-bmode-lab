@@ -1,4 +1,4 @@
-"""Download and integrity-check selected public PICMUS channel datasets."""
+"""Download and integrity-check selected public USTB channel datasets."""
 
 from __future__ import annotations
 
@@ -14,6 +14,11 @@ DATASETS = {
         76_705_680,
         "be81dfc519d3f7c642ff60d85642f311",
     ),
+    "carotid-long": (
+        "PICMUS_carotid_long.uff",
+        76_705_676,
+        "09fddc4ca1ce2dc9d1ac870a9d3871b6",
+    ),
     "contrast": (
         "PICMUS_experiment_contrast_speckle.uff",
         145_518_504,
@@ -23,6 +28,11 @@ DATASETS = {
         "PICMUS_experiment_resolution_distortion.uff",
         145_518_524,
         "e8a4487993222f28458aa88259345440",
+    ),
+    "alpinion": (
+        "Alpinion_L3-8_CPWC_hypoechoic.uff",
+        48_274_300,
+        "1b335b36510a2e3406a9f5d575614bdc",
     ),
 }
 

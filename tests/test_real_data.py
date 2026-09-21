@@ -4,9 +4,14 @@ from pathlib import Path
 
 import numpy as np
 
-from ultrasound_bmode.real_data import _select_angles, beamform_plane_wave
+from ultrasound_bmode.real_data import (
+    _select_angles,
+    beamform_plane_wave,
+    select_transmit_indices,
+)
 
 DATASET = Path("data/raw/PICMUS_carotid_cross.uff")
+ALPINION_DATASET = Path("data/raw/Alpinion_L3-8_CPWC_hypoechoic.uff")
 HAS_H5PY = importlib.util.find_spec("h5py") is not None
 
 
@@ -23,6 +28,11 @@ class AngleSelectionTests(unittest.TestCase):
     def test_invalid_angle_count_is_rejected(self):
         with self.assertRaises(ValueError):
             _select_angles(75, 76)
+
+    def test_physical_angle_selection_handles_alternating_storage_order(self):
+        angles = np.array([-0.3, 0.3, -0.15, 0.15, 0.0])
+        selected = select_transmit_indices(angles, 3)
+        np.testing.assert_allclose(angles[selected], np.array([-0.3, 0.0, 0.3]))
 
     def test_single_plane_wave_rejects_invalid_index(self):
         acquisition = type("Acquisition", (), {"transmit_angles_rad": np.zeros(2)})()
@@ -56,3 +66,16 @@ class InstalledDatasetTests(unittest.TestCase):
         )
         self.assertTrue(np.isfinite(result.bmode_db).all())
         self.assertEqual(result.angle_indices.size, 1)
+
+
+@unittest.skipUnless(HAS_H5PY and ALPINION_DATASET.is_file(), "Alpinion UFF dataset not installed")
+class InstalledAlpinionTests(unittest.TestCase):
+    def test_channel_only_uff_uses_derived_grid(self):
+        from ultrasound_bmode.real_data import load_uff_channel_data
+
+        acquisition = load_uff_channel_data(ALPINION_DATASET)
+        self.assertEqual(acquisition.channel_data.shape, (21, 128, 4352))
+        self.assertEqual(acquisition.x_axis_m.size, 256)
+        self.assertEqual(acquisition.z_axis_m.size, 384)
+        self.assertIsNone(acquisition.reference_iq)
+        self.assertAlmostEqual(acquisition.sampling_frequency_hz, 40e6)

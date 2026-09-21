@@ -28,7 +28,7 @@ class UFFAcquisition:
     transmit_angles_rad: np.ndarray
     x_axis_m: np.ndarray
     z_axis_m: np.ndarray
-    reference_iq: np.ndarray
+    reference_iq: np.ndarray | None
     name: str
     citation: str
 
@@ -42,13 +42,18 @@ class PlaneWaveResult:
     angle_indices: np.ndarray
 
 
-def _decode_uff_text(dataset) -> str:
-    values = np.asarray(dataset).ravel()
+def _decode_uff_text(node) -> str:
+    if hasattr(node, "keys"):
+        keys = sorted(node.keys())
+        if not keys:
+            return ""
+        node = node[keys[0]]
+    values = np.asarray(node).ravel()
     return "".join(chr(int(value)) for value in values)
 
 
-def load_picmus_uff(path: str | Path) -> UFFAcquisition:
-    """Load the PICMUS UFF file while preserving its acquisition metadata."""
+def load_uff_channel_data(path: str | Path) -> UFFAcquisition:
+    """Load plane-wave channel data from UFF, with an optional image reference."""
     try:
         import h5py
     except ImportError as exc:  # pragma: no cover - exercised only in minimal installs
@@ -73,12 +78,21 @@ def load_picmus_uff(path: str | Path) -> UFFAcquisition:
             [float(sequence[name]["source/azimuth"][0, 0]) for name in names], dtype=float
         )
 
-        x_axis = np.asarray(uff["scan/x_axis"]).ravel().astype(float)
-        z_axis = np.asarray(uff["scan/z_axis"]).ravel().astype(float)
-        real = np.asarray(uff["beamformed_data/data/real"]).ravel()
-        imag = np.asarray(uff["beamformed_data/data/imag"]).ravel()
-        # UFF stores z as the fastest-changing coordinate in the flattened scan.
-        reference_iq = (real + 1j * imag).reshape(x_axis.size, z_axis.size).T
+        if "scan" in uff:
+            x_axis = np.asarray(uff["scan/x_axis"]).ravel().astype(float)
+            z_axis = np.asarray(uff["scan/z_axis"]).ravel().astype(float)
+        else:
+            x_axis = np.linspace(float(element_x.min()), float(element_x.max()), 256)
+            final_time = initial_time + (channel.shape[-1] - 1) / sampling_frequency
+            maximum_depth = min(80e-3, 0.95 * final_time * sound_speed / 2.0)
+            z_axis = np.linspace(2e-3, maximum_depth, 384)
+
+        reference_iq = None
+        if "beamformed_data" in uff:
+            real = np.asarray(uff["beamformed_data/data/real"]).ravel()
+            imag = np.asarray(uff["beamformed_data/data/imag"]).ravel()
+            # UFF stores z as the fastest-changing coordinate in the flattened scan.
+            reference_iq = (real + 1j * imag).reshape(x_axis.size, z_axis.size).T
 
         return UFFAcquisition(
             channel_data=channel,
@@ -95,9 +109,19 @@ def load_picmus_uff(path: str | Path) -> UFFAcquisition:
         )
 
 
+def load_picmus_uff(path: str | Path) -> UFFAcquisition:
+    """Backward-compatible PICMUS loader built on the generic UFF reader."""
+    acquisition = load_uff_channel_data(path)
+    if acquisition.reference_iq is None:
+        raise ValueError("PICMUS validation requires embedded beamformed reference data")
+    return acquisition
+
+
 def reference_bmode(
     acquisition: UFFAcquisition, dynamic_range_db: float = 60.0
 ) -> np.ndarray:
+    if acquisition.reference_iq is None:
+        raise ValueError("this acquisition does not contain an embedded beamformed reference")
     return log_compress(np.abs(acquisition.reference_iq), dynamic_range_db)
 
 
@@ -107,6 +131,24 @@ def _select_angles(total: int, count: int) -> np.ndarray:
     if count == 1:
         return np.array([total // 2], dtype=int)
     return np.unique(np.rint(np.linspace(0, total - 1, count)).astype(int))
+
+
+def select_transmit_indices(angles_rad: np.ndarray, count: int) -> np.ndarray:
+    """Select approximately uniform physical angles, independent of storage order."""
+    angles = np.asarray(angles_rad, dtype=float)
+    if angles.ndim != 1 or not np.isfinite(angles).all():
+        raise ValueError("transmit angles must be a finite one-dimensional array")
+    if count <= 0 or count > angles.size:
+        raise ValueError(f"angle_count must be between 1 and {angles.size}")
+    if count == angles.size:
+        return np.arange(angles.size, dtype=int)
+    if count == 1:
+        return np.array([int(np.argmin(np.abs(angles)))], dtype=int)
+    targets = np.linspace(float(angles.min()), float(angles.max()), count)
+    selected = [int(np.argmin(np.abs(angles - target))) for target in targets]
+    if len(set(selected)) != count:
+        return _select_angles(angles.size, count)
+    return np.asarray(selected, dtype=int)
 
 
 def beamform_plane_wave(
@@ -210,7 +252,7 @@ def plane_wave_delay_and_sum(
 
     x_axis = acquisition.x_axis_m[::lateral_stride]
     z_axis = acquisition.z_axis_m[::axial_stride]
-    angle_indices = _select_angles(acquisition.transmit_angles_rad.size, angle_count)
+    angle_indices = select_transmit_indices(acquisition.transmit_angles_rad, angle_count)
     output_dtype = complex if method in {"cf", "pcf", "mvdr"} else float
     compounded = np.zeros((z_axis.size, x_axis.size), dtype=output_dtype)
 

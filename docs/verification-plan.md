@@ -29,6 +29,8 @@ make a clinical claim, or process data in a care-delivery workflow.
 | ALG-011 | RF preprocessing and optional display stages shall be deterministic and finite. | `ProcessingTests` | Carrier, common-mode, automatic TGC, compression, and diffusion fixtures pass. |
 | PERF-001 | Compiled and reference DAS shall be numerically equivalent. | `test_numba_kernel_matches_numpy_on_coarse_real_grid` | RF agrees at `rtol=1e-5`, `atol=1e-7`. |
 | MET-003 | Translation registration and uncertainty calculation shall be reproducible. | `RoiAnalysisTests` | Integer shift is exact and fixed-seed bootstrap output repeats. |
+| DATA-003 | EPFL RF dimensions shall agree with its settings and global time axis. | `EpflLoaderTests` | Mismatched angle, element, sample, or sampling metadata is rejected. |
+| DATA-004 | Sparse-angle selection shall follow physical angle values despite alternating storage. | `test_physical_angle_selection_handles_alternating_storage_order` | Selected angles span the negative extreme, zero, and positive extreme. |
 
 ## Reproducibility controls
 
@@ -44,7 +46,7 @@ make a clinical claim, or process data in a care-delivery workflow.
 |---|---|---|
 | Incorrect propagation-speed assumption | One explicit configuration value; synthetic focus test | Add speed-of-sound sensitivity study and calibration dataset. |
 | Delay/interpolation error | Fractional linear interpolation and axial tolerance test | Compare with higher-order interpolation and an analytical point-spread function. |
-| Misleading simulated image quality | Real in-vivo and physical CIRS phantom RF evidence plus intended-use disclaimer | Add independent vendors, probes, subjects, and laboratories. |
+| Limited generalization | Four in-vivo carotid acquisitions, two explicit EPFL volunteers, three probes, and physical phantom cross-platform evidence | Add more subjects, disease states, operators, laboratories, and multi-vendor human acquisitions. |
 | ROI selection bias | Stored/overlaid geometry, common ROI, registration, and bootstrap intervals | Add blinded multi-observer ROIs and spatial uncertainty. |
 | Numerical or dependency regression | Unit tests and versioned CI environment | Lock validated dependency versions for a formal release. |
 
@@ -52,8 +54,9 @@ make a clinical claim, or process data in a care-delivery workflow.
 
 1. Create a clean Python environment and install the project with development dependencies.
 2. Run `python -m unittest discover -s tests -v` and retain the console record.
-3. Download each controlled data item with `scripts/download_picmus.py --dataset <alias>`.
-4. Run the synthetic, angle benchmark, adaptive, phantom, enhancement, acceleration, and ROI
+3. Download each controlled USTB item with `scripts/download_picmus.py --dataset <alias>` and
+   the selected EPFL items with `scripts/download_epfl.py --sample all`.
+4. Run the synthetic, angle benchmark, adaptive, phantom, enhancement, acceleration, ROI, and external
    commands documented in the README.
 5. Confirm that every expected PNG/JSON/CSV artifact is produced and contains finite values.
 6. Inspect point targets, cyst ROIs, carotid ROI, and depth behavior for gross artifacts.

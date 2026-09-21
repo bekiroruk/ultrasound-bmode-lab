@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 
 from .processing import envelope_detect, log_compress
-from .real_data import PlaneWaveResult, UFFAcquisition, _select_angles
+from .real_data import PlaneWaveResult, UFFAcquisition, select_transmit_indices
 
 
 def _library_candidates() -> tuple[Path, ...]:
@@ -42,7 +42,7 @@ def native_plane_wave_delay_and_sum(
         raise RuntimeError("native backend is not built; see native/README.md")
     channel = np.ascontiguousarray(acquisition.channel_data, dtype=np.float32)
     angles = np.ascontiguousarray(acquisition.transmit_angles_rad, dtype=np.float64)
-    indices = np.ascontiguousarray(_select_angles(angles.size, angle_count), dtype=np.int32)
+    indices = np.ascontiguousarray(select_transmit_indices(angles, angle_count), dtype=np.int32)
     elements = np.ascontiguousarray(acquisition.element_x_m, dtype=np.float64)
     x_axis = np.ascontiguousarray(acquisition.x_axis_m[::lateral_stride], dtype=np.float64)
     z_axis = np.ascontiguousarray(acquisition.z_axis_m[::axial_stride], dtype=np.float64)
