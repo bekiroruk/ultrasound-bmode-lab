@@ -4,7 +4,9 @@ This lightweight plan demonstrates requirements-driven algorithm development. It
 
 ## Intended use and boundaries
 
-The software reconstructs educational B-mode images from simulated RF channel data and reports research image-quality metrics. It is not intended to control hardware, process patient data, support diagnosis, or make a clinical claim.
+The software reconstructs educational B-mode images from synthetic data and public,
+de-identified research acquisitions. It is not intended to control hardware, support diagnosis,
+make a clinical claim, or process data in a care-delivery workflow.
 
 ## Traceability matrix
 
@@ -20,6 +22,13 @@ The software reconstructs educational B-mode images from simulated RF channel da
 | DATA-001 | Preserve the published UFF acquisition dimensions and metadata. | `test_uff_dimensions_and_metadata` | 75 × 128 × 1,536 RF tensor, 20.832 MHz sampling, and 609 × 387 reference grid. |
 | ALG-008 | Produce finite B-mode output from measured RF channel data. | `test_coarse_real_reconstruction_is_finite` | Every reconstructed dB sample is finite. |
 | DATA-002 | Use reproducible steering-angle subsets. | `AngleSelectionTests` | Single-angle selects 0°; multi-angle selection includes both published extremes. |
+| ALG-009 | Adaptive aperture methods shall distinguish coherent and incoherent fixtures. | `AdaptiveBeamformingTests` | CF/PCF are one for coherent samples and near zero for uniformly distributed phase. |
+| ALG-010 | DMAS and MVDR implementations shall return finite, normalized baseline outputs. | `AdaptiveBeamformingTests` | Pair identity matches the analytical fixture; MVDR output is finite. |
+| MET-001 | Similarity metrics shall recover identity and reject incompatible shapes. | `MetricTests` | Correlation/SSIM are one, RMSE zero, PSNR infinite for identical images. |
+| MET-002 | Physical point-target measurement shall recover analytical Gaussian FWHM. | `test_gaussian_point_target_fwhm` | Axial and lateral error are each below 0.02 mm. |
+| ALG-011 | RF preprocessing and optional display stages shall be deterministic and finite. | `ProcessingTests` | Carrier, common-mode, automatic TGC, compression, and diffusion fixtures pass. |
+| PERF-001 | Compiled and reference DAS shall be numerically equivalent. | `test_numba_kernel_matches_numpy_on_coarse_real_grid` | RF agrees at `rtol=1e-5`, `atol=1e-7`. |
+| MET-003 | Translation registration and uncertainty calculation shall be reproducible. | `RoiAnalysisTests` | Integer shift is exact and fixed-seed bootstrap output repeats. |
 
 ## Reproducibility controls
 
@@ -35,15 +44,18 @@ The software reconstructs educational B-mode images from simulated RF channel da
 |---|---|---|
 | Incorrect propagation-speed assumption | One explicit configuration value; synthetic focus test | Add speed-of-sound sensitivity study and calibration dataset. |
 | Delay/interpolation error | Fractional linear interpolation and axial tolerance test | Compare with higher-order interpolation and an analytical point-spread function. |
-| Misleading simulated image quality | Simulator limitations and intended-use disclaimer | Verify on calibrated phantom RF data and a public reference dataset. |
-| ROI selection bias | Fixed documented geometry and machine-readable metrics | Add blinded/registered ROIs and uncertainty estimates. |
+| Misleading simulated image quality | Real in-vivo and physical CIRS phantom RF evidence plus intended-use disclaimer | Add independent vendors, probes, subjects, and laboratories. |
+| ROI selection bias | Stored/overlaid geometry, common ROI, registration, and bootstrap intervals | Add blinded multi-observer ROIs and spatial uncertainty. |
 | Numerical or dependency regression | Unit tests and versioned CI environment | Lock validated dependency versions for a formal release. |
 
 ## Reference test procedure
 
 1. Create a clean Python environment and install the project with development dependencies.
 2. Run `python -m unittest discover -s tests -v` and retain the console record.
-3. Run `ultrasound-bmode --output-dir artifacts --seed 7`.
-4. Confirm that `bmode_demo.png` and `metrics.json` are produced.
-5. Inspect the point targets, the cyst ROI, and the depth profile for gross artifacts.
-6. Compare metric JSON values with an approved baseline using stated tolerances.
+3. Download each controlled data item with `scripts/download_picmus.py --dataset <alias>`.
+4. Run the synthetic, angle benchmark, adaptive, phantom, enhancement, acceleration, and ROI
+   commands documented in the README.
+5. Confirm that every expected PNG/JSON/CSV artifact is produced and contains finite values.
+6. Inspect point targets, cyst ROIs, carotid ROI, and depth behavior for gross artifacts.
+7. Compare metric JSON values with the approved baseline using stated tolerances.
+8. Record the commit SHA, dependency freeze, dataset checksums, host, and command lines.
