@@ -1,4 +1,6 @@
 import json
+import subprocess
+import sys
 import tempfile
 import unittest
 from dataclasses import replace
@@ -64,6 +66,13 @@ class TransferParityTests(unittest.TestCase):
 
 class BatchProfileReportTests(unittest.TestCase):
     def test_profile_compares_each_batch_to_its_own_f_number(self):
+        def processor_probe():
+            # Linux platform discovery can itself launch a subprocess. The mock
+            # must intercept benchmark workers only, not unrelated system probes.
+            return subprocess.check_output(
+                [sys.executable, "-c", "print('test-cpu')"], text=True
+            ).strip()
+
         def fake_subprocess(command, **kwargs):
             f_number = float(command[command.index("--f-number") + 1])
             batch = (int(command[command.index("--angle-batch-size") + 1])
@@ -81,10 +90,13 @@ class BatchProfileReportTests(unittest.TestCase):
             root = Path(directory)
             source = root / "source.uff"
             source.write_bytes(b"synthetic test")
-            with patch("ultrasound_bmode.batch_profile_cli.subprocess.run",
-                       side_effect=fake_subprocess) as runner:
+            with patch("ultrasound_bmode.batch_profile_cli.run_process",
+                       side_effect=fake_subprocess) as runner, \
+                 patch("ultrasound_bmode.batch_profile_cli.platform.processor",
+                       side_effect=processor_probe):
                 report = run_batch_profile(source, root / "report")
             self.assertEqual(runner.call_count, 6)
+            self.assertEqual(report["processor"], "test-cpu")
             self.assertEqual(len(report["records"]), 6)
             for row in report["records"]:
                 if row["angle_batch_size"] is not None:

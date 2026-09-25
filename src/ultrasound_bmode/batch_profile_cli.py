@@ -5,11 +5,11 @@ from __future__ import annotations
 import argparse
 import json
 import platform
-import subprocess
 import sys
 import tempfile
 from importlib.metadata import version
 from pathlib import Path
+from subprocess import run as run_process
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -54,8 +54,8 @@ def run_batch_profile(dataset: Path, output_dir: Path, repeats=3):
                            "--result-path", str(path)]
                 if batch is not None:
                     command += ["--angle-batch-size", str(batch)]
-                completed = subprocess.run(command, capture_output=True, text=True, check=True,
-                                           timeout=600)
+                completed = run_process(command, capture_output=True, text=True, check=True,
+                                        timeout=600)
                 row = json.loads(completed.stdout)
                 row["parity_to_same_f_number_unbatched"] = None
                 if batch is None:
