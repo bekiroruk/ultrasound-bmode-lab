@@ -21,8 +21,9 @@ without changing its numerical result.
 </div>
 
 <p align="center">
-  <img src="artifacts/real_data/picmus_carotid_75_angle.png"
-       alt="PICMUS in-vivo carotid B-mode reference" width="690">
+  <img src="artifacts/analytic_quality/PICMUS_carotid_cross_75_angles.png"
+       alt="Our measured carotid reconstruction: before, channel-analytic CPWC, UFF reference"
+       width="1000">
 </p>
 
 ## Evidence at a glance
@@ -33,18 +34,63 @@ without changing its numerical result.
 | Independent EPFL volunteers | **2** — public volunteer IDs 005 and 008 |
 | Probe/platform coverage | L11/L11-4v, GE 9L-D, and Alpinion L3-8 |
 | Raw carotid tensor | 75 transmissions × 128 elements × 1,536 RF samples |
-| Our 75-angle / UFF correlation | **0.815** |
-| Our 75-angle / UFF SSIM | **0.462** |
-| Our 75-angle / UFF RMSE | **8.07 dB** |
-| Numba speedup, 75 angles | **21.8×** in the recorded run |
-| Numba runtime, 75 angles | **2.229 s** on the measured host |
-| Physical phantom median lateral FWHM | **0.599 mm** — our 11-angle CPWC |
-| Physical phantom median axial FWHM | **0.679 mm** — our 11-angle CPWC |
-| External-study mean 11-angle correlation | **0.866** across four human acquisitions |
-| Automated tests | **35 passing** with local datasets and acceleration extra |
+| Channel-analytic 75-angle carotid cross / UFF correlation | **0.928** |
+| Channel-analytic 75-angle carotid cross / UFF SSIM | **0.731** (legacy: 0.462) |
+| Channel-analytic 75-angle carotid cross / UFF RMSE | **4.84 dB** (legacy: 8.07 dB) |
+| Channel-analytic validation | **2 human views + 2 physical phantom scans**, each at 11 and 75 angles |
+| Legacy real-RF Numba speedup, 75 angles | **21.8×** in the recorded v0.3 run |
+| Legacy real-RF Numba runtime, 75 angles | **2.229 s** on the measured host |
+| Legacy physical phantom median lateral FWHM | **0.599 mm** — 11-angle CPWC |
+| Legacy physical phantom median axial FWHM | **0.679 mm** — 11-angle CPWC |
+| Automated tests | **41 passing** with local datasets and acceleration extra |
 
 Runtimes are hardware-dependent single-host measurements. Image metrics compare normalized
 display images and are research evidence, not clinical-performance claims.
+
+## v0.4: fixing envelope extraction on coarse reconstruction grids
+
+The earlier real-RF path focused onto the output image grid and then applied a depth-axis
+Hilbert transform. On the stride-2 PICMUS grid, the axial step is approximately 0.148 mm:
+the on-axis equivalent RF Nyquist frequency is only 2.60 MHz. Such a grid can undersample
+the focused RF carrier and corrupt subsequent envelope extraction, producing vertical streaks.
+
+The new opt-in path forms the analytic signal **on the original RF channels**, interpolates
+and focuses its real and imaginary parts, coherently compounds angles, and takes magnitude.
+No sharpening, denoising, TGC, registration or image-generation model is used in this comparison.
+This is **analytic RF, not baseband-demodulated IQ**.
+
+| Measured acquisition, 75 angles | Legacy SSIM | Channel-analytic SSIM |
+|---|---:|---:|
+| Human carotid cross-section | 0.462 | **0.731** |
+| Human carotid longitudinal view | 0.460 | **0.749** |
+| Physical contrast/speckle phantom | 0.440 | **0.930** |
+| Physical resolution/distortion phantom | 0.428 | **0.795** |
+
+All eight before/after cases improved SSIM and dB RMSE against the embedded UFF reference.
+These are reconstruction-reference comparisons, not clinical accuracy measurements.
+The comparison holds angles, aperture (F-number 1.5), stride (2) and display range (60 dB)
+fixed; each image is independently peak-normalized. No cross-dataset aggregate mixes
+independent references with self-reconstruction references.
+
+```bash
+# After installation and the four PICMUS downloads below:
+ultrasound-quality
+# Alternative without the optional accelerated backend:
+ultrasound-quality --backend numpy --angles 11
+```
+
+See the [complete before/after report](artifacts/analytic_quality/README.md), including
+eight figures, exact angle selections, acquisition metadata and SHA-256 checksums.
+Both `plane_wave_delay_and_sum(..., analytic=True)` and
+`numba_plane_wave_delay_and_sum(..., analytic=True)` expose the new path. Their `rf` field
+then contains a complex analytic signal; use `abs(result.rf)` for its envelope, not a second
+Hilbert transform. Signed DMAS rejects this mode; CF/PCF/MVDR already use analytic channels.
+CUDA and native C++ remain real-RF only and have not been benchmarked in analytic mode.
+
+Existing commands keep their legacy defaults for reproducibility. The angle-count, external,
+phantom, enhancement, acceleration and ROI results below are historical real-RF baseline
+evidence, **not recomputed v0.4 analytic results**. In particular, the old speedup and FWHM
+numbers must not be attributed to the new path.
 
 ## What the project implements
 
@@ -74,6 +120,7 @@ cosine apodization, and coherent transmission compounding.
 ### Reconstruction and adaptive methods
 
 - conventional normalized delay-and-sum (DAS);
+- opt-in channel-analytic DAS/CPWC with grid-independent envelope sampling;
 - coherence factor (CF) and phase coherence factor (PCF);
 - signed square-root delay-multiply-and-sum (DMAS);
 - diagonally loaded, spatially smoothed Capon/MVDR;
@@ -88,7 +135,7 @@ cosine apodization, and coherent transmission compounding.
 - phase-correlation registration, carotid wall sharpness, and 95% bootstrap intervals;
 - runtime, FPS, process working set, backend agreement, and speedup.
 
-## Angle-count study: quality versus compute
+## Legacy angle-count study: quality versus compute
 
 <p align="center">
   <img src="artifacts/benchmark/angle_reconstructions.png"
@@ -112,7 +159,7 @@ From 11 angles onward, structural similarity improves consistently.
        alt="Angle count image quality and CPU runtime curves" width="820">
 </p>
 
-## External validation: subjects, views, and probes
+## Legacy external validation: subjects, views, and probes
 
 The same reconstruction code was next tested on five measured acquisitions: PICMUS carotid
 cross/longitudinal views, two explicitly distinct EPFL volunteers, and an Alpinion hypoechoic
@@ -140,11 +187,10 @@ the alternating EPFL and Alpinion sequences.
 
 The EPFL and Alpinion references are full-angle reconstructions from the same acquisitions, so
 those rows measure sparse-angle stability rather than diagnostic accuracy. The PICMUS rows use
-independently stored UFF beamformed references. The mean 11-angle correlation across the four
-human acquisitions was 0.866; this aggregate mixes the two stated reference types and is reported
-only as a compact engineering summary.
+independently stored UFF beamformed references. These reference types should not be combined
+into a single accuracy score.
 
-## Physical phantom validation
+## Legacy physical phantom validation
 
 The project downloads measured contrast/speckle and resolution/distortion scans recorded on a
 CIRS Multi-Purpose Ultrasound Phantom Model 040GSE. The same RF loader and CPWC code reconstruct
@@ -244,6 +290,7 @@ ultrasound-enhance --output-dir artifacts/enhancement --angles 11
 ultrasound-accelerate --output-dir artifacts/acceleration
 ultrasound-roi --output-dir artifacts/roi --angles 75
 ultrasound-external --output-dir artifacts/external_validation
+ultrasound-quality --output-dir artifacts/analytic_quality
 
 python -m unittest discover -s tests -v
 ```
@@ -331,7 +378,10 @@ ultrasound-bmode-lab/
 - The UFF image is an algorithmic reference, not anatomical or diagnostic ground truth.
 - EPFL/Alpinion sparse-angle metrics use same-acquisition full-angle CPWC references.
 - Constant sound speed, linear interpolation, and simplified receive modelling remain.
-- Deep phantom contrast is weak in the current 11-angle reconstruction.
+- Deep phantom contrast was weak in the legacy 11-angle reconstruction; phantom ROI/FWHM
+  and uncertainty reports have not yet been regenerated for the analytic path.
+- The analytic path has been compared on four PICMUS acquisitions; EPFL and Alpinion analytic
+  validation and new runtime/memory benchmarks remain to be done.
 - Adaptive methods need parameter studies on independent acquisitions.
 - Bootstrap intervals ignore spatial correlation and between-subject variability.
 - CUDA and C++ runtimes require corresponding local hardware/build tools and were unavailable on

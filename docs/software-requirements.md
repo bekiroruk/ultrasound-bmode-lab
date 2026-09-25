@@ -1,6 +1,6 @@
 # Software requirements specification
 
-Status: research baseline, revision 1
+Status: research baseline, revision 2 (channel-analytic reconstruction)
 
 This specification defines verifiable behavior for the ultrasound B-mode laboratory. The
 software is educational/research software and is not intended for diagnosis, treatment,
@@ -34,6 +34,10 @@ channel files remain outside Git.
 | MET-004 | External validation shall retain per-acquisition reference type, subject scope, platform, probe, and anatomy. | JSON and CSV records expose all fields without conflating embedded and same-acquisition references. |
 | PERF-001 | A compiled CPU backend shall preserve conventional DAS output within numerical tolerance. | Numba and NumPy RF arrays agree at `rtol=1e-5`, `atol=1e-7`. |
 | PERF-002 | Performance reports shall separate one-time compilation from steady-state runtime. | JSON contains compilation time, backend runtime, speedup, and numerical agreement. |
+| ALG-012 | Opt-in channel-analytic CPWC shall preserve a known Gaussian RF envelope on an undersampled output grid. | Absolute amplitude error ≤ 1e-9 at exact sample coordinates. |
+| ALG-013 | Analytic reconstruction values shall be invariant to output-grid subsampling at common coordinates. | Complex output agrees at `rtol=1e-12`, `atol=1e-12`. |
+| PERF-003 | Analytic Numba shall agree with NumPy on dataset-independent multichannel fixtures. | Complex RF agrees at `rtol=1e-5`, `atol=1e-7`; B-mode agrees at `atol=1e-4` dB. |
+| DATA-005 | Analytic comparison reports shall identify input files, selected angles and display settings. | Strict JSON includes SHA-256, sampling, shape, F-number, stride, reference policy and per-case before/after metrics. |
 | SAFE-001 | Every public-facing description shall identify the software as non-clinical. | README and lifecycle documentation contain the intended-use limitation. |
 
 ## Quality attributes

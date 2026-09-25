@@ -46,7 +46,31 @@ use normalized display images and method-specific phantom metrics.
 
 ## Processing and evaluation
 
-The default display path is Hilbert envelope followed by 60 dB log compression. Optional stages
+The legacy default display path is output-depth Hilbert envelope followed by 60 dB log
+compression. The v0.4 `analytic=True` option instead applies
+[`scipy.signal.hilbert`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.hilbert.html)
+along the original channel sample axis, before fractional-delay interpolation. Complex
+beamformed signals are coherently compounded before taking magnitude. This is analytic RF,
+not baseband IQ demodulation, and does not require an assumed carrier frequency.
+
+The motivation is sampling: for an on-axis pulse-echo path, `dt = 2 dz / c`, so the equivalent
+output-grid RF Nyquist limit is `c / (4 dz)`. A coarse image grid need not support the RF
+carrier even when channel acquisition satisfies Nyquist. Channel-analytic processing avoids
+performing Hilbert on this undersampled grid. It does not correct insufficient acquisition
+sampling, channel boundaries, bandwidth limitations or interpolation error. Complex analytic
+RF samples themselves may still be spatially undersampled; they must not be interpreted as a
+new adequately sampled RF time series.
+
+NumPy focuses complex samples directly. Numba runs the same real kernel on real and quadrature
+channels and combines the results. CUDA and native C++ are not changed. Signed real DMAS
+rejects the analytic flag. Existing CF/PCF/MVDR already operate on analytic channels.
+
+`ultrasound-quality` holds output coordinates, F-number, angle indices and display range fixed
+and compares each path against the embedded UFF image sampled on that same grid. Peak
+normalization is independent per image; the reference is normalized before subsampling.
+This experiment does not change or reuse historical phantom FWHM/runtime claims.
+
+Optional stages
 are evaluated as an ablation: common-mode rejection, data-driven RF band-pass, automatic TGC,
 adaptive range, and anisotropic diffusion. A stage is retained in the report even when a metric
 worsens; this prevents selective reporting.

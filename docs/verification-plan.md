@@ -31,6 +31,10 @@ make a clinical claim, or process data in a care-delivery workflow.
 | MET-003 | Translation registration and uncertainty calculation shall be reproducible. | `RoiAnalysisTests` | Integer shift is exact and fixed-seed bootstrap output repeats. |
 | DATA-003 | EPFL RF dimensions shall agree with its settings and global time axis. | `EpflLoaderTests` | Mismatched angle, element, sample, or sampling metadata is rejected. |
 | DATA-004 | Sparse-angle selection shall follow physical angle values despite alternating storage. | `test_physical_angle_selection_handles_alternating_storage_order` | Selected angles span the negative extreme, zero, and positive extreme. |
+| ALG-012 | Channel-analytic CPWC shall recover a known envelope on a coarse output grid. | `test_recovers_known_envelope_on_undersampled_depth_grid` | Gaussian amplitude absolute error ≤ 1e-9 at the analytical sample coordinates. |
+| ALG-013 | Analytic RF at shared coordinates shall not depend on output-grid subsampling. | `test_complex_rf_is_invariant_to_output_grid_subsampling` | Complex output agrees at `rtol=1e-12`, `atol=1e-12`. |
+| PERF-003 | Analytic Numba and NumPy shall agree without external datasets. | `test_numba_matches_numpy_with_delays_angles_and_invalid_samples` | Real/analytic RF agree at `rtol=1e-5`, `atol=1e-7`; displayed dB at `atol=1e-4`; 1/3/5 physical-angle subsets. |
+| DATA-005 | The comparison report shall retain exact data/configuration provenance. | `QualityReportTests` and `artifacts/analytic_quality/quality_metrics.json` | Offline test produces parseable JSON and a figure; measured report includes SHA-256, geometry sampling and selected angles. |
 
 ## Reproducibility controls
 
@@ -38,7 +42,9 @@ make a clinical claim, or process data in a care-delivery workflow.
 - Calculations use SI units; display conversions occur only at visualization boundaries.
 - Default parameters are centralized in the immutable `ImagingConfig` object.
 - The JSON metric artifact makes regression thresholds machine-readable.
-- CI runs the same test suite on two supported Python versions.
+- CI runs the same test suite on two supported Python versions, with Numba installed so
+  the dataset-independent accelerated parity test actually executes. Installed-data checks
+  skip when large external acquisitions are absent; local validation runs them as well.
 
 ## Main technical risks
 
@@ -56,8 +62,9 @@ make a clinical claim, or process data in a care-delivery workflow.
 2. Run `python -m unittest discover -s tests -v` and retain the console record.
 3. Download each controlled USTB item with `scripts/download_picmus.py --dataset <alias>` and
    the selected EPFL items with `scripts/download_epfl.py --sample all`.
-4. Run the synthetic, angle benchmark, adaptive, phantom, enhancement, acceleration, ROI, and external
-   commands documented in the README.
+4. Run the synthetic, angle benchmark, adaptive, phantom, enhancement, acceleration, ROI, external,
+   and `ultrasound-quality` commands documented in the README. Keep legacy and analytic results
+   separate; the latter has not yet repeated the complete phantom ROI/uncertainty study.
 5. Confirm that every expected PNG/JSON/CSV artifact is produced and contains finite values.
 6. Inspect point targets, cyst ROIs, carotid ROI, and depth behavior for gross artifacts.
 7. Compare metric JSON values with the approved baseline using stated tolerances.

@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 
 import numpy as np
+from scipy.signal import hilbert
 
 from .processing import envelope_detect, log_compress
 from .real_data import PlaneWaveResult, UFFAcquisition, select_transmit_indices
@@ -149,8 +150,14 @@ def numba_plane_wave_delay_and_sum(
     axial_stride: int = 2,
     f_number: float = 1.5,
     dynamic_range_db: float = 60.0,
+    analytic: bool = False,
 ) -> PlaneWaveResult:
-    """Run conventional CPWC with a parallel Numba CPU kernel."""
+    """Run CPWC; analytic mode focuses channel analytic signals before magnitude.
+
+    The legacy mode takes the Hilbert transform along the output depth grid.
+    Analytic mode avoids that operation on a potentially undersampled RF grid.
+    The complex result in ``rf`` is analytic RF, not baseband-demodulated IQ.
+    """
     if njit is None:
         raise ImportError("Numba backend requires `pip install -e .[accelerated]`")
     if lateral_stride <= 0 or axial_stride <= 0 or f_number <= 0:
@@ -160,10 +167,12 @@ def numba_plane_wave_delay_and_sum(
     angle_indices = np.ascontiguousarray(
         select_transmit_indices(acquisition.transmit_angles_rad, angle_count)
     )
-    rf = _numba_das_kernel(
-        np.ascontiguousarray(acquisition.channel_data),
-        np.ascontiguousarray(acquisition.transmit_angles_rad),
-        angle_indices,
+    channel = np.ascontiguousarray(acquisition.channel_data[angle_indices])
+    angles = np.ascontiguousarray(acquisition.transmit_angles_rad[angle_indices])
+    selected = np.arange(angle_indices.size)
+    arguments = (
+        angles,
+        selected,
         np.ascontiguousarray(acquisition.element_x_m),
         x_axis,
         z_axis,
@@ -172,7 +181,12 @@ def numba_plane_wave_delay_and_sum(
         acquisition.initial_time_s,
         f_number,
     )
-    bmode = log_compress(envelope_detect(rf), dynamic_range_db)
+    rf = _numba_das_kernel(channel, *arguments)
+    if analytic:
+        quadrature = np.ascontiguousarray(hilbert(channel, axis=-1).imag)
+        rf = rf + 1j * _numba_das_kernel(quadrature, *arguments)
+    envelope = np.abs(rf) if analytic else envelope_detect(rf)
+    bmode = log_compress(envelope, dynamic_range_db)
     return PlaneWaveResult(rf, bmode, x_axis, z_axis, angle_indices)
 
 

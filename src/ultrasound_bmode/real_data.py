@@ -35,6 +35,8 @@ class UFFAcquisition:
 
 @dataclass(frozen=True)
 class PlaneWaveResult:
+    """Reconstruction; ``rf`` holds complex analytic RF when analytic mode is used."""
+
     rf: np.ndarray
     bmode_db: np.ndarray
     x_axis_m: np.ndarray
@@ -160,6 +162,7 @@ def beamform_plane_wave(
     method: str = "das",
     mvdr_subarray_size: int = 16,
     diagonal_loading: float = 0.05,
+    analytic: bool = False,
 ) -> np.ndarray:
     """Focus one measured plane-wave transmission onto a Cartesian grid."""
     if not 0 <= angle_index < acquisition.transmit_angles_rad.size:
@@ -169,13 +172,16 @@ def beamform_plane_wave(
     methods = {"das", "cf", "pcf", "dmas", "mvdr"}
     if method not in methods:
         raise ValueError(f"method must be one of {sorted(methods)}")
+    if analytic and method == "dmas":
+        raise ValueError("analytic processing is not defined for signed real DMAS")
 
     elements = acquisition.element_x_m
     element_indices = np.arange(elements.size)[None, :]
     angle = acquisition.transmit_angles_rad[angle_index]
     real_angle_data = acquisition.channel_data[angle_index]
     angle_data = (
-        hilbert(real_angle_data, axis=-1) if method in {"cf", "pcf", "mvdr"} else real_angle_data
+        hilbert(real_angle_data, axis=-1)
+        if analytic or method in {"cf", "pcf", "mvdr"} else real_angle_data
     )
     output_dtype = complex if np.iscomplexobj(angle_data) else float
     focused_image = np.zeros((z_axis_m.size, x_axis_m.size), dtype=output_dtype)
@@ -240,12 +246,18 @@ def plane_wave_delay_and_sum(
     method: str = "das",
     mvdr_subarray_size: int = 16,
     diagonal_loading: float = 0.05,
+    analytic: bool = False,
 ) -> PlaneWaveResult:
     """Reconstruct real RF data using coherent plane-wave compounding.
 
     The UFF channel array is stored as ``[transmit, element, sample]``. Linear
     interpolation implements fractional delays; a cosine receive aperture is
     varied with depth according to the requested F-number.
+
+    With ``analytic=True``, Hilbert transformation is performed on each RF
+    channel before delay interpolation, and the compounded complex magnitude
+    supplies the envelope. This is analytic RF, not demodulated baseband IQ.
+    The default preserves historical real-RF results for reproducibility.
     """
     if lateral_stride <= 0 or axial_stride <= 0 or f_number <= 0:
         raise ValueError("strides and f_number must be positive")
@@ -253,7 +265,9 @@ def plane_wave_delay_and_sum(
     x_axis = acquisition.x_axis_m[::lateral_stride]
     z_axis = acquisition.z_axis_m[::axial_stride]
     angle_indices = select_transmit_indices(acquisition.transmit_angles_rad, angle_count)
-    output_dtype = complex if method in {"cf", "pcf", "mvdr"} else float
+    if analytic and method == "dmas":
+        raise ValueError("analytic processing is not defined for signed real DMAS")
+    output_dtype = complex if analytic or method in {"cf", "pcf", "mvdr"} else float
     compounded = np.zeros((z_axis.size, x_axis.size), dtype=output_dtype)
 
     for angle_index in angle_indices:
@@ -266,6 +280,7 @@ def plane_wave_delay_and_sum(
             method,
             mvdr_subarray_size,
             diagonal_loading,
+            analytic,
         )
 
     compounded /= angle_indices.size
