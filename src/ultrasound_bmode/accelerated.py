@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import math
+import time
+from dataclasses import dataclass
 from numbers import Integral
 
 import numpy as np
@@ -17,6 +19,68 @@ except ImportError:  # pragma: no cover - exercised only without acceleration ex
     cuda = None
     njit = None
     prange = range
+
+
+@dataclass(frozen=True)
+class AnalyticChannelCache:
+    """In-memory quadrature channels tied to one acquisition array instance."""
+
+    source_channel_data: np.ndarray
+    quadrature: np.ndarray
+    preparation_seconds: float
+    preparation_batch_size: int
+
+    @property
+    def size_mib(self) -> float:
+        return self.quadrature.nbytes / 2**20
+
+
+def _positive_integer(value, name: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, Integral) or value <= 0:
+        raise ValueError(f"{name} must be a positive integer")
+    return int(value)
+
+
+def prepare_analytic_channel_cache(
+    acquisition: UFFAcquisition,
+    batch_size: int = 8,
+) -> AnalyticChannelCache:
+    """Precompute channel quadrature in bounded batches for repeated reconstructions.
+
+    The cache is valid only for the exact ``channel_data`` array object used to
+    construct it. Treat that array as immutable for the cache lifetime.
+    """
+    batch_size = _positive_integer(batch_size, "batch_size")
+    source = acquisition.channel_data
+    if source.ndim != 3 or not np.issubdtype(source.dtype, np.floating):
+        raise ValueError("analytic cache requires a real floating [angle, element, sample] array")
+    quadrature = np.empty_like(source)
+    start_time = time.perf_counter()
+    for start in range(0, source.shape[0], batch_size):
+        stop = min(start + batch_size, source.shape[0])
+        quadrature[start:stop] = hilbert(source[start:stop], axis=-1).imag
+    preparation_seconds = time.perf_counter() - start_time
+    quadrature.setflags(write=False)
+    return AnalyticChannelCache(
+        source_channel_data=source,
+        quadrature=quadrature,
+        preparation_seconds=preparation_seconds,
+        preparation_batch_size=batch_size,
+    )
+
+
+def _validate_analytic_cache(
+    acquisition: UFFAcquisition,
+    cache: AnalyticChannelCache,
+) -> None:
+    if not isinstance(cache, AnalyticChannelCache):
+        raise TypeError("analytic_cache must be an AnalyticChannelCache")
+    if cache.source_channel_data is not acquisition.channel_data:
+        raise ValueError("analytic_cache belongs to a different channel_data array instance")
+    if cache.quadrature.shape != acquisition.channel_data.shape:
+        raise ValueError("analytic_cache shape does not match channel_data")
+    if cache.quadrature.dtype != acquisition.channel_data.dtype:
+        raise ValueError("analytic_cache dtype does not match channel_data")
 
 
 if njit is not None:
@@ -153,6 +217,7 @@ def numba_plane_wave_delay_and_sum(
     dynamic_range_db: float = 60.0,
     analytic: bool = False,
     angle_batch_size: int | None = None,
+    analytic_cache: AnalyticChannelCache | None = None,
 ) -> PlaneWaveResult:
     """Run CPWC; analytic mode focuses channel analytic signals before magnitude.
 
@@ -162,16 +227,19 @@ def numba_plane_wave_delay_and_sum(
     Optional angle batching bounds temporary channel/Hilbert arrays, not the
     resident input acquisition. Complex batch means are weighted by their angle
     counts before envelope extraction; the final short batch is not overweighted.
+    A prepared analytic cache reuses quadrature channels across calls. It avoids
+    repeated Hilbert transforms but adds one real channel tensor of resident memory.
     """
     if njit is None:
         raise ImportError("Numba backend requires `pip install -e .[accelerated]`")
     if lateral_stride <= 0 or axial_stride <= 0 or f_number <= 0:
         raise ValueError("strides and f_number must be positive")
-    if angle_batch_size is not None and (
-        isinstance(angle_batch_size, bool) or not isinstance(angle_batch_size, Integral)
-        or angle_batch_size <= 0
-    ):
-        raise ValueError("angle_batch_size must be a positive integer or None")
+    if angle_batch_size is not None:
+        angle_batch_size = _positive_integer(angle_batch_size, "angle_batch_size")
+    if analytic_cache is not None:
+        if not analytic:
+            raise ValueError("analytic_cache requires analytic=True")
+        _validate_analytic_cache(acquisition, analytic_cache)
     x_axis = np.ascontiguousarray(acquisition.x_axis_m[::lateral_stride])
     z_axis = np.ascontiguousarray(acquisition.z_axis_m[::axial_stride])
     angle_indices = np.ascontiguousarray(
@@ -195,7 +263,10 @@ def numba_plane_wave_delay_and_sum(
         arguments = (angles, np.arange(batch_indices.size), *arguments_tail)
         focused = _numba_das_kernel(channel, *arguments)
         if analytic:
-            quadrature = np.ascontiguousarray(hilbert(channel, axis=-1).imag)
+            quadrature = np.ascontiguousarray(
+                analytic_cache.quadrature[batch_indices]
+                if analytic_cache is not None else hilbert(channel, axis=-1).imag
+            )
             focused = focused + 1j * _numba_das_kernel(quadrature, *arguments)
             del quadrature
         rf += focused * (batch_indices.size / angle_indices.size)

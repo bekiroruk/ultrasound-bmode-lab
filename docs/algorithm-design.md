@@ -97,6 +97,26 @@ not model spatial correlation or inter-subject uncertainty.
 
 ## Key design decisions and limitations
 
+### Reusable analytic-channel cache (v0.8)
+
+The opt-in cache stores only the Hilbert quadrature component in the acquisition's real dtype;
+the original channel tensor remains the real component. Preparation iterates over bounded angle
+batches, but the completed cache is one full additional channel-sized tensor. Reconstruction
+still makes contiguous working copies for the selected angle batch, so the cache complements
+rather than replaces `angle_batch_size`.
+
+Cache validation requires object identity with the source `channel_data`, matching shape and
+dtype, and analytic Numba mode. The quadrature array is marked read-only. This catches accidental
+reuse with another loaded acquisition, but cannot detect in-place mutation of the original RF
+array; callers must treat it as immutable during the cache lifetime. A cache is intentionally
+not serialized because persistent cache invalidation would require stronger content/provenance
+binding.
+
+The cache profile separates one-time preparation from one excluded warmup, repeated timings and
+a separate sampled-RSS call. Cached and uncached full arrays must agree before evidence is saved.
+The derived break-even count is host/run-specific and includes measured preparation only; it is
+not a throughput or real-time guarantee.
+
 ### Frozen transfer and angle batching (v0.7)
 
 The F/0.8 candidate selected on two PICMUS phantom acquisitions is compared, without retuning,

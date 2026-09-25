@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ultrasound-bmode-lab"
-version = "0.7.0"
+version = "0.8.0"
 description = "Measured-RF ultrasound beamforming, phantom validation, quality metrics, and acceleration."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -39,6 +39,7 @@ ultrasound-aperture-study = "ultrasound_bmode.aperture_study_cli:main"
 ultrasound-profile = "ultrasound_bmode.runtime_profile_cli:main"
 ultrasound-aperture-transfer = "ultrasound_bmode.aperture_transfer_cli:main"
 ultrasound-batch-profile = "ultrasound_bmode.batch_profile_cli:main"
+ultrasound-cache-profile = "ultrasound_bmode.cache_profile_cli:main"
 
 
 [tool.setuptools.packages.find]

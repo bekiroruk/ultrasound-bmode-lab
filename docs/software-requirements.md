@@ -1,6 +1,6 @@
 # Software requirements specification
 
-Status: research baseline, revision 5 (frozen aperture transfer and bounded angle batches)
+Status: research baseline, revision 6 (reusable analytic-channel cache)
 
 This specification defines verifiable behavior for the ultrasound B-mode laboratory. The
 software is educational/research software and is not intended for diagnosis, treatment,
@@ -48,6 +48,8 @@ channel files remain outside Git.
 | ALG-015 | Optional angle batching shall preserve coherent compounding and physical angle selection. | Non-divisible batches, batch one, oversized batches, real/analytic modes match NumPy; inputs remain unchanged. |
 | DATA-007 | The F/0.8 transfer study shall freeze aperture settings without retuning on evaluation acquisitions. | Both F/1.7 and F/0.8 reported per acquisition; unavailable references are null, not self-references labeled as accuracy. |
 | PERF-006 | Batched performance comparisons shall use fresh processes and same-F-number unbatched references. | Each measured batch passes full-array RF and B-mode parity against its matching baseline; timing/RSS protocols remain separate. |
+| ALG-016 | A reusable analytic cache shall be bound to one exact real channel-data array and shall not be accepted by non-analytic reconstruction. | Wrong-source, malformed, wrong-type and non-analytic uses fail; cached/uncached RF and B-mode outputs agree. |
+| PERF-007 | Cache profiling shall report preparation cost separately from repeated reconstruction and retain the memory tradeoff. | Fresh-process cached/uncached pairs report raw repeats, cache bytes, preparation time, sampled RSS and full-array parity. |
 | SAFE-001 | Every public-facing description shall identify the software as non-clinical. | README and lifecycle documentation contain the intended-use limitation. |
 
 ## Quality attributes

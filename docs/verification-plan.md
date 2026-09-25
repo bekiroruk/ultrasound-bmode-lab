@@ -45,6 +45,8 @@ make a clinical claim, or process data in a care-delivery workflow.
 | ALG-015 | Angle batching shall weight partial batches correctly before envelope extraction. | `AngleBatchingTests` | RF agrees with NumPy at `rtol=1e-5`, `atol=1e-7` over real/analytic modes, 1/5/7 angles and six batch choices; input unchanged, invalid batch sizes rejected. |
 | DATA-007 | Frozen transfer shall preserve geometry, reference semantics and both F-numbers. | `TransferParityTests` | Misaligned coordinates, reordered angles or altered outputs fail; report retains F/1.7 and F/0.8 with reference type. |
 | PERF-006 | Batched profiles shall compare only like-for-like configurations. | `BatchProfileReportTests` and measured batch report | Six sequential configurations use correct same-F-number baseline; full-array RF/B-mode agreement required before publishing measurements. |
+| ALG-016 | Reusable analytic cache shall preserve output and reject invalid reuse. | `test_analytic_cache.py` | Batched preparation matches SciPy Hilbert; cached/uncached output agrees; wrong source, shape, dtype, type and mode are rejected. |
+| PERF-007 | Cache performance evidence shall separate preparation, repeated timing and memory. | `CacheProfileReportTests` and `artifacts/cache_profile/metrics.json` | Four fresh-process cases retain preparation time/bytes, raw repeats, RSS, break-even calculation and full-array parity. |
 
 ## Reproducibility controls
 
@@ -74,7 +76,8 @@ make a clinical claim, or process data in a care-delivery workflow.
    the selected EPFL items with `scripts/download_epfl.py --sample all`.
 4. Run the synthetic, angle benchmark, adaptive, phantom, enhancement, acceleration, ROI, external,
    `ultrasound-quality`, `ultrasound-validate-analytic`, `ultrasound-aperture-study` and
-   `ultrasound-profile`, `ultrasound-aperture-transfer` and `ultrasound-batch-profile` commands
+   `ultrasound-profile`, `ultrasound-aperture-transfer`, `ultrasound-batch-profile` and
+   `ultrasound-cache-profile` commands
    documented in the README. Run profiling after other compute
    experiments finish; do not benchmark backends concurrently.
    Keep legacy and analytic results separate. Analytic fixed-ROI/FWHM measurements are

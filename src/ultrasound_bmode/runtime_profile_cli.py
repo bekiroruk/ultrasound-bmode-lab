@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import psutil
 
-from .accelerated import numba_plane_wave_delay_and_sum
+from .accelerated import numba_plane_wave_delay_and_sum, prepare_analytic_channel_cache
 from .real_data import load_picmus_uff, plane_wave_delay_and_sum
 from .reconstruction_quality_cli import _sha256
 
@@ -69,14 +69,24 @@ def profile_call(function, repeats=3, sample_interval_s=0.002):
     }, result
 
 
-def worker(dataset, backend, analytic, count, repeats, output, batch_size=None, f_number=1.5):
+def worker(
+    dataset, backend, analytic, count, repeats, output, batch_size=None, f_number=1.5,
+    use_analytic_cache=False, cache_batch_size=8,
+):
     if backend == "numpy" and batch_size is not None:
         raise ValueError("angle batching is available only for the Numba backend")
     acquisition = load_picmus_uff(dataset)
     reconstruct = numba_plane_wave_delay_and_sum if backend == "numba" else plane_wave_delay_and_sum
+    if use_analytic_cache and (backend != "numba" or not analytic):
+        raise ValueError("analytic cache profiling requires the analytic Numba backend")
+    cache = (
+        prepare_analytic_channel_cache(acquisition, cache_batch_size)
+        if use_analytic_cache else None
+    )
     kwargs = {"angle_count": count, "analytic": analytic, "f_number": f_number}
     if backend == "numba":
         kwargs["angle_batch_size"] = batch_size
+        kwargs["analytic_cache"] = cache
     report, result = profile_call(lambda: reconstruct(acquisition, **kwargs), repeats)
     np.savez_compressed(output, rf=result.rf, bmode=result.bmode_db)
     from numba import get_num_threads
@@ -87,6 +97,14 @@ def worker(dataset, backend, analytic, count, repeats, output, batch_size=None, 
         "rf_dtype": str(result.rf.dtype), "numba_threads": get_num_threads(),
         "input_channel_mib": acquisition.channel_data.nbytes / 2**20,
         "angle_batch_size": batch_size, "f_number": f_number,
+        "analytic_cache": use_analytic_cache,
+        "analytic_cache_mib": cache.size_mib if cache is not None else 0.0,
+        "analytic_cache_preparation_seconds": (
+            cache.preparation_seconds if cache is not None else None
+        ),
+        "analytic_cache_preparation_batch_size": (
+            cache.preparation_batch_size if cache is not None else None
+        ),
     })
     return report
 
@@ -197,12 +215,15 @@ def main():
     parser.add_argument("--result-path", type=Path, help=argparse.SUPPRESS)
     parser.add_argument("--angle-batch-size", type=int, help=argparse.SUPPRESS)
     parser.add_argument("--f-number", type=float, default=1.5, help=argparse.SUPPRESS)
+    parser.add_argument("--use-analytic-cache", action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument("--cache-batch-size", type=int, default=8, help=argparse.SUPPRESS)
     args = parser.parse_args()
     if args.worker:
         if args.result_path is None:
             parser.error("--worker requires --result-path")
         print(json.dumps(worker(args.dataset, args.backend, args.analytic, args.count,
-                                args.repeats, args.result_path, args.angle_batch_size, args.f_number)))
+                                args.repeats, args.result_path, args.angle_batch_size, args.f_number,
+                                args.use_analytic_cache, args.cache_batch_size)))
     else:
         run_runtime_profile(args.dataset, args.output_dir, args.repeats)
 

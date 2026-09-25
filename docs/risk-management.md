@@ -19,6 +19,7 @@ are present and verified.
 | R-008 | Performance optimization changes numerical output. | Medium | Compiled and reference RF outputs are compared at strict tolerance; JIT time is separated. | `PERF-001`, acceleration JSON. | Low |
 | R-009 | A dependency or Python update changes results. | Medium | CI on two Python versions, unit tests, machine-readable reference artifacts. | CI and regression review. | Low–medium |
 | R-010 | Human-data provenance or license is obscured. | Medium | Public de-identified research source, license/citation file, no raw redistribution. | Provenance documentation review. | Low |
+| R-011 | A stale analytic cache is paired with different or mutated RF data, producing invalid reconstruction. | Medium | Cache is bound to the exact source array instance; shape/dtype/mode are checked; cache quadrature is read-only; source immutability is documented. | `ALG-016` cache misuse and parity tests. | Low–medium |
 
 ## Open risk work
 

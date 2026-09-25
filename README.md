@@ -42,14 +42,72 @@ without changing its numerical result.
 | Unbatched analytic Numba runtime, 11 angles (v0.6) | **0.140 s** — 3 warm repeats, F/1.5 |
 | Batch-8 analytic Numba median runtime, 75 angles | **3.251 s** — matched unbatched baseline 4.622 s, F/1.5 |
 | Batch-8 sampled RSS peak, 75 angles | **285.7 MiB** — matched unbatched baseline 537.0 MiB |
+| Cached batch-8 analytic runtime, 75 angles (v0.8) | **0.810 s** — matched uncached 0.988 s; five repeats |
+| Reusable analytic cache cost | **56.25 MiB** + 0.160–0.168 s one-time preparation |
 | Analytic deep phantom cyst gCNR, 11 angles | **0.926** (legacy: 0.268) |
 | Analytic phantom median lateral FWHM, 11 angles | **0.652 mm** (legacy: 0.599 mm; wider) |
 | Analytic phantom median axial FWHM, 11 angles | **0.577 mm** (legacy: 0.679 mm; narrower) |
 | Exploratory analytic lateral FWHM, F/0.8 | **0.572 mm** — 11 angles; defaults unchanged |
-| Automated tests | **62 passing** with local datasets and acceleration extra |
+| Automated tests | **69 passing** with local datasets and acceleration extra |
 
 Runtimes are hardware-dependent single-host measurements. Image metrics compare normalized
 display images and are research evidence, not clinical-performance claims.
+
+## v0.8: reusable analytic-channel cache
+
+Repeated parameter sweeps on one loaded acquisition no longer need to recompute the Hilbert
+quadrature channels every time. `prepare_analytic_channel_cache` builds a read-only, in-memory
+quadrature tensor in bounded batches; the Numba reconstruction can then reuse it while varying
+angle count, aperture or output-grid settings. The cache is opt-in and is accepted only with
+`analytic=True` and the exact source channel-array instance from which it was created.
+
+```python
+from ultrasound_bmode.accelerated import (
+    numba_plane_wave_delay_and_sum,
+    prepare_analytic_channel_cache,
+)
+from ultrasound_bmode.real_data import load_picmus_uff
+
+acquisition = load_picmus_uff("data/raw/PICMUS_carotid_cross.uff")
+cache = prepare_analytic_channel_cache(acquisition, batch_size=8)
+
+result = numba_plane_wave_delay_and_sum(
+    acquisition,
+    angle_count=75,
+    analytic=True,
+    angle_batch_size=8,
+    analytic_cache=cache,
+)
+```
+
+The [matched cache profile](artifacts/cache_profile/README.md) uses the same real carotid RF
+record, F/1.5 and angle batches of 8. Each cached/uncached case ran in a fresh sequential
+process with one excluded warmup, five timed repeats and a separate sampled-RSS pass.
+
+| Angles | Uncached median | Cached median | Reduction | RSS peak change | Measured break-even |
+|---:|---:|---:|---:|---:|---:|
+| 11 | 0.146 s | **0.119 s** | **18.3%** | +38.5 MiB | 7 calls |
+| 75 | 0.988 s | **0.810 s** | **18.0%** | +38.0 MiB | 1 call |
+
+The cache itself is 56.25 MiB and took 0.160–0.168 s to prepare in these runs. “Break-even”
+includes that one-time preparation but excludes loading and compilation. Cached and uncached
+full RF/B-mode arrays were exactly equal in both measured cases. Absolute timings should be
+compared only inside this matched run, not against earlier version tables made under different
+process/runtime conditions.
+
+<p align="center">
+  <img src="artifacts/cache_profile/cache_profile.png"
+       alt="Matched repeated reconstruction time and process memory with and without analytic cache"
+       width="900">
+</p>
+
+This is a time-for-memory tradeoff. It helps repeated reconstructions of one acquisition; it
+does not improve one-off work, remove the resident raw RF tensor, persist data to disk, or make
+the pipeline real time. The source array must be treated as immutable while its cache is used.
+
+```bash
+ultrasound-cache-profile --repeats 5
+```
 
 ## v0.7: frozen aperture transfer and bounded angle batches
 
