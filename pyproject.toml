@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ultrasound-bmode-lab"
-version = "0.4.0"
+version = "0.5.0"
 description = "Measured-RF ultrasound beamforming, phantom validation, quality metrics, and acceleration."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -34,6 +34,7 @@ ultrasound-accelerate = "ultrasound_bmode.acceleration_cli:main"
 ultrasound-roi = "ultrasound_bmode.roi_cli:main"
 ultrasound-external = "ultrasound_bmode.external_validation_cli:main"
 ultrasound-quality = "ultrasound_bmode.reconstruction_quality_cli:main"
+ultrasound-validate-analytic = "ultrasound_bmode.analytic_validation_cli:main"
 
 
 [tool.setuptools.packages.find]

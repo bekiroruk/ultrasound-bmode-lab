@@ -35,6 +35,10 @@ make a clinical claim, or process data in a care-delivery workflow.
 | ALG-013 | Analytic RF at shared coordinates shall not depend on output-grid subsampling. | `test_complex_rf_is_invariant_to_output_grid_subsampling` | Complex output agrees at `rtol=1e-12`, `atol=1e-12`. |
 | PERF-003 | Analytic Numba and NumPy shall agree without external datasets. | `test_numba_matches_numpy_with_delays_angles_and_invalid_samples` | Real/analytic RF agree at `rtol=1e-5`, `atol=1e-7`; displayed dB at `atol=1e-4`; 1/3/5 physical-angle subsets. |
 | DATA-005 | The comparison report shall retain exact data/configuration provenance. | `QualityReportTests` and `artifacts/analytic_quality/quality_metrics.json` | Offline test produces parseable JSON and a figure; measured report includes SHA-256, geometry sampling and selected angles. |
+| MET-005 | FWHM shall accept boundary-bracketed crossings and reject truncated profiles. | Two edge tests in `PhantomMeasurementTests` | Triangular profile width equals 1; unbracketed peak returns NaN internally and null in report. |
+| MET-006 | Analytic phantom reports shall retain both modes, per-target validity and same-grid references. | `test_phantom_report_retains_all_points_modes_and_matched_reference` | Ten records, seven targets per resolution record, reference metrics equal direct same-grid measurement. |
+| MET-007 | Grid consistency shall compare linear envelopes without hiding scale error. | `AnalyticValidationTests` | Factor-two amplitude error remains visible; misaligned coordinates are rejected. |
+| DATA-006 | External reports shall distinguish within-method stability from independent accuracy. | `test_external_report_keeps_same_mode_references_separate` | Both mode records use own full-angle reference; reference limitation and provenance retained. |
 
 ## Reproducibility controls
 
@@ -63,8 +67,9 @@ make a clinical claim, or process data in a care-delivery workflow.
 3. Download each controlled USTB item with `scripts/download_picmus.py --dataset <alias>` and
    the selected EPFL items with `scripts/download_epfl.py --sample all`.
 4. Run the synthetic, angle benchmark, adaptive, phantom, enhancement, acceleration, ROI, external,
-   and `ultrasound-quality` commands documented in the README. Keep legacy and analytic results
-   separate; the latter has not yet repeated the complete phantom ROI/uncertainty study.
+   `ultrasound-quality` and `ultrasound-validate-analytic` commands documented in the README.
+   Keep legacy and analytic results separate. Analytic fixed-ROI/FWHM measurements are
+   available; spatial uncertainty and new runtime benchmarking remain separate future work.
 5. Confirm that every expected PNG/JSON/CSV artifact is produced and contains finite values.
 6. Inspect point targets, cyst ROIs, carotid ROI, and depth behavior for gross artifacts.
 7. Compare metric JSON values with the approved baseline using stated tolerances.

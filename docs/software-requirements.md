@@ -1,6 +1,6 @@
 # Software requirements specification
 
-Status: research baseline, revision 2 (channel-analytic reconstruction)
+Status: research baseline, revision 3 (analytic phantom and external validation)
 
 This specification defines verifiable behavior for the ultrasound B-mode laboratory. The
 software is educational/research software and is not intended for diagnosis, treatment,
@@ -38,6 +38,10 @@ channel files remain outside Git.
 | ALG-013 | Analytic reconstruction values shall be invariant to output-grid subsampling at common coordinates. | Complex output agrees at `rtol=1e-12`, `atol=1e-12`. |
 | PERF-003 | Analytic Numba shall agree with NumPy on dataset-independent multichannel fixtures. | Complex RF agrees at `rtol=1e-5`, `atol=1e-7`; B-mode agrees at `atol=1e-4` dB. |
 | DATA-005 | Analytic comparison reports shall identify input files, selected angles and display settings. | Strict JSON includes SHA-256, sampling, shape, F-number, stride, reference policy and per-case before/after metrics. |
+| MET-005 | FWHM shall distinguish bracketed edge crossings from truncated profiles. | Bracketed half-amplitude crossings are finite; unbracketed widths are unavailable. |
+| MET-006 | Matched phantom evaluation shall retain fixed ROIs, shared-grid references and per-target validity. | Both modes at 11/75 angles and seven target records are exported, with finite-count and null handling. |
+| MET-007 | Output-grid consistency shall preserve amplitude-scale differences at shared coordinates. | A factor-two envelope discrepancy is not hidden by independent normalization; misaligned axes fail. |
+| DATA-006 | External analytic evaluation shall explicitly label same-mode full-angle references. | Reports keep separate mode scores and disclaim independent/clinical accuracy; data/settings hashes retained. |
 | SAFE-001 | Every public-facing description shall identify the software as non-clinical. | README and lifecycle documentation contain the intended-use limitation. |
 
 ## Quality attributes

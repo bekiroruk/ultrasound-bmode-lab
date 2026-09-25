@@ -70,6 +70,21 @@ and compares each path against the embedded UFF image sampled on that same grid.
 normalization is independent per image; the reference is normalized before subsampling.
 This experiment does not change or reuse historical phantom FWHM/runtime claims.
 
+The v0.5 `ultrasound-validate-analytic` experiment separately evaluates fixed-ROI linear
+envelope contrast and FWHM, using F-number 1.7 and the same stride-2 grid for reconstruction
+and embedded reference. Widths subtract a local 20th-percentile baseline and interpolate
+half-amplitude crossings. Crossings bracketed by edge samples are accepted; profiles still
+above half maximum at the boundary are truncated and reported as null, with valid counts.
+Both improved and worsened metrics are retained.
+
+External EPFL/Alpinion cases have no independent image reference. Each mode's 11-angle
+reconstruction is compared to that same mode's full-angle reconstruction; these are
+within-method stability scores, not a comparison of accuracy across methods. A separate
+grid test compares linear envelopes on shared coordinates, normalized by the shared fine-grid
+peak (never per-image renormalization). Analytic invariance is a numerical property of the
+implementation, not evidence of anatomical correctness. Data and EPFL settings checksums,
+geometry and selected angle indices are retained with each report.
+
 Optional stages
 are evaluated as an ablation: common-mode rejection, data-driven RF band-pass, automatic TGC,
 adaptive range, and anisotropic diffusion. A stage is retained in the report even when a metric

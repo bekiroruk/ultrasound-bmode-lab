@@ -48,7 +48,9 @@ def _half_max_width(axis: np.ndarray, profile: np.ndarray, peak_index: int) -> f
     right = peak_index
     while right + 1 < corrected.size and corrected[right] >= threshold:
         right += 1
-    if left == 0 or right == corrected.size - 1:
+    # An edge sample below half maximum still brackets a valid crossing.
+    # Reject only genuinely truncated profiles, not crossings next to an edge.
+    if corrected[left] >= threshold or corrected[right] >= threshold:
         return float("nan")
 
     def crossing(index_a: int, index_b: int) -> float:

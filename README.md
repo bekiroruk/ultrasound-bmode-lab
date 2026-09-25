@@ -37,15 +37,69 @@ without changing its numerical result.
 | Channel-analytic 75-angle carotid cross / UFF correlation | **0.928** |
 | Channel-analytic 75-angle carotid cross / UFF SSIM | **0.731** (legacy: 0.462) |
 | Channel-analytic 75-angle carotid cross / UFF RMSE | **4.84 dB** (legacy: 8.07 dB) |
-| Channel-analytic validation | **2 human views + 2 physical phantom scans**, each at 11 and 75 angles |
+| Channel-analytic embedded-reference validation | **2 human views + 2 physical phantom scans**, each at 11 and 75 angles |
+| Channel-analytic external checks | **2 EPFL volunteers + 1 Alpinion phantom**, 11/full angles |
 | Legacy real-RF Numba speedup, 75 angles | **21.8×** in the recorded v0.3 run |
 | Legacy real-RF Numba runtime, 75 angles | **2.229 s** on the measured host |
-| Legacy physical phantom median lateral FWHM | **0.599 mm** — 11-angle CPWC |
-| Legacy physical phantom median axial FWHM | **0.679 mm** — 11-angle CPWC |
-| Automated tests | **41 passing** with local datasets and acceleration extra |
+| Analytic deep phantom cyst gCNR, 11 angles | **0.926** (legacy: 0.268) |
+| Analytic phantom median lateral FWHM, 11 angles | **0.652 mm** (legacy: 0.599 mm; wider) |
+| Analytic phantom median axial FWHM, 11 angles | **0.577 mm** (legacy: 0.679 mm; narrower) |
+| Automated tests | **48 passing** with local datasets and acceleration extra |
 
 Runtimes are hardware-dependent single-host measurements. Image metrics compare normalized
 display images and are research evidence, not clinical-performance claims.
+
+## v0.5: physical measurements and external analytic validation
+
+The new [phantom report](artifacts/analytic_validation/phantom/README.md) measures linear
+envelopes using identical fixed ROIs, F-number 1.7 and stride-2 grids for both methods.
+The embedded UFF reference is sampled on that same grid; all seven point targets and both
+cysts are retained in the JSON report. Widths are baseline-corrected half-amplitude FWHM.
+
+| Measurement, 11-angle physical phantom | Legacy | Analytic |
+|---|---:|---:|
+| Deep cyst contrast [dB], more negative = darker than background | −3.07 | **−20.10** |
+| Deep cyst CNR | 0.402 | **1.556** |
+| Deep cyst gCNR | 0.268 | **0.926** |
+| Median axial FWHM [mm], lower = narrower | 0.679 | **0.577** |
+| Median lateral FWHM [mm], lower = narrower | **0.599** | 0.652 |
+
+The lateral result is a tradeoff, not an improvement. At 75 angles the analytic deep cyst
+gCNR was 0.934, axial FWHM 0.575 mm and lateral FWHM 0.653 mm. All seven target widths were
+measurable in both directions. These results are single-acquisition engineering measurements,
+not statistical significance, clinical performance or certified scanner calibration.
+
+<p align="center">
+  <img src="artifacts/analytic_validation/phantom/contrast_11_angles.png"
+       alt="Measured phantom with shared target and background ROIs: legacy, analytic and UFF reference"
+       width="1000">
+</p>
+
+The [external report](artifacts/analytic_validation/external/README.md) adds EPFL volunteers
+005 and 008 and the Alpinion physical phantom. It includes 11/full-angle reconstructions for
+both methods and checks linear-envelope consistency when the output grid is subsampled.
+The legacy normalized grid discrepancy was 0.0248, 0.0299 and 0.0354 respectively; analytic
+discrepancy was zero to numerical precision. This invariance follows from the analytic
+construction; **it does not prove anatomical accuracy**.
+
+There is no independent reference for these three cases. Each 11-angle result is compared
+only with its own method's full-angle reconstruction (87 angles for EPFL, 21 for Alpinion).
+Analytic 11/full SSIM was 0.536 / 0.594 on EPFL and 0.930 on Alpinion. The EPFL values are
+lower than the legacy within-method values (0.685 / 0.759); this remains visible and should
+not be interpreted as a head-to-head accuracy score. Sparse-angle behavior needs further work.
+
+```bash
+ultrasound-validate-analytic
+# Run just one part:
+ultrasound-validate-analytic --section phantom
+ultrasound-validate-analytic --section external
+```
+
+The reports retain file and EPFL settings SHA-256 checksums, probe geometry, timing, grid
+coordinates, angle indices, dependency versions, fixed ROI definitions and per-target results.
+Missing widths are `null`, with valid-target counts; no nonstandard JSON NaN is emitted.
+An edge-crossing regression test also prevents valid FWHM measurements next to a profile
+boundary from being incorrectly rejected. The old versioned artifacts remain unchanged.
 
 ## v0.4: fixing envelope extraction on coarse reconstruction grids
 
@@ -291,6 +345,7 @@ ultrasound-accelerate --output-dir artifacts/acceleration
 ultrasound-roi --output-dir artifacts/roi --angles 75
 ultrasound-external --output-dir artifacts/external_validation
 ultrasound-quality --output-dir artifacts/analytic_quality
+ultrasound-validate-analytic --output-dir artifacts/analytic_validation
 
 python -m unittest discover -s tests -v
 ```
@@ -378,10 +433,11 @@ ultrasound-bmode-lab/
 - The UFF image is an algorithmic reference, not anatomical or diagnostic ground truth.
 - EPFL/Alpinion sparse-angle metrics use same-acquisition full-angle CPWC references.
 - Constant sound speed, linear interpolation, and simplified receive modelling remain.
-- Deep phantom contrast was weak in the legacy 11-angle reconstruction; phantom ROI/FWHM
-  and uncertainty reports have not yet been regenerated for the analytic path.
-- The analytic path has been compared on four PICMUS acquisitions; EPFL and Alpinion analytic
-  validation and new runtime/memory benchmarks remain to be done.
+- Analytic phantom contrast and axial FWHM improved, but lateral FWHM widened in this study.
+- Analytic validation covers four PICMUS acquisitions, two EPFL volunteers and one Alpinion
+  phantom; none of these results provides population-level or clinical validation.
+- Analytic ROI uncertainty, spatially aware confidence intervals, sparse-angle tuning and
+  updated runtime/memory benchmarks remain to be done.
 - Adaptive methods need parameter studies on independent acquisitions.
 - Bootstrap intervals ignore spatial correlation and between-subject variability.
 - CUDA and C++ runtimes require corresponding local hardware/build tools and were unavailable on

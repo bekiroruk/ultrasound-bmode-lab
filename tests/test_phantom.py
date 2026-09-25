@@ -2,10 +2,18 @@ import unittest
 
 import numpy as np
 
-from ultrasound_bmode.phantom import measure_point_target
+from ultrasound_bmode.phantom import _half_max_width, measure_point_target
 
 
 class PhantomMeasurementTests(unittest.TestCase):
+    def test_fwhm_accepts_crossing_bracketed_by_edge_samples(self):
+        width = _half_max_width(np.arange(3.0), np.array([0.0, 1.0, 0.0]), 1)
+        self.assertAlmostEqual(width, 1.0)
+
+    def test_fwhm_rejects_truncated_profile(self):
+        width = _half_max_width(np.arange(4.0), np.array([0.0, 0.0, 0.8, 1.0]), 3)
+        self.assertTrue(np.isnan(width))
+
     def test_gaussian_point_target_fwhm(self):
         x = np.linspace(-2e-3, 2e-3, 401)
         z = np.linspace(8e-3, 12e-3, 401)
