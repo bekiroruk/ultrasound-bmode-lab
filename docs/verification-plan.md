@@ -39,6 +39,9 @@ make a clinical claim, or process data in a care-delivery workflow.
 | MET-006 | Analytic phantom reports shall retain both modes, per-target validity and same-grid references. | `test_phantom_report_retains_all_points_modes_and_matched_reference` | Ten records, seven targets per resolution record, reference metrics equal direct same-grid measurement. |
 | MET-007 | Grid consistency shall compare linear envelopes without hiding scale error. | `AnalyticValidationTests` | Factor-two amplitude error remains visible; misaligned coordinates are rejected. |
 | DATA-006 | External reports shall distinguish within-method stability from independent accuracy. | `test_external_report_keeps_same_mode_references_separate` | Both mode records use own full-angle reference; reference limitation and provenance retained. |
+| ALG-014 | Aperture selection shall honor both cysts, axial-width and valid-target guardrails. | `ApertureSelectionTests` | Reject nonfinite or missing measurements, insufficient targets and limit violations; exclude fine-grid/75-angle records from selection. |
+| PERF-004 | Warmup, timing and memory sampling shall be distinct passes. | `RuntimeProtocolTests` | Two timed repeats entail four total calls; warmup excluded from median; RSS peak >= baseline; invalid settings fail. |
+| PERF-005 | Measured profiles shall retain full-array backend parity checks. | `artifacts/runtime_profile/metrics.json` | NumPy/Numba 11-angle real and complex RF at `rtol=1e-5`, `atol=1e-7`; B-mode at `atol=1e-4` dB. |
 
 ## Reproducibility controls
 
@@ -67,9 +70,11 @@ make a clinical claim, or process data in a care-delivery workflow.
 3. Download each controlled USTB item with `scripts/download_picmus.py --dataset <alias>` and
    the selected EPFL items with `scripts/download_epfl.py --sample all`.
 4. Run the synthetic, angle benchmark, adaptive, phantom, enhancement, acceleration, ROI, external,
-   `ultrasound-quality` and `ultrasound-validate-analytic` commands documented in the README.
+   `ultrasound-quality`, `ultrasound-validate-analytic`, `ultrasound-aperture-study` and
+   `ultrasound-profile` commands documented in the README. Run profiling after other compute
+   experiments finish; do not benchmark backends concurrently.
    Keep legacy and analytic results separate. Analytic fixed-ROI/FWHM measurements are
-   available; spatial uncertainty and new runtime benchmarking remain separate future work.
+   available; spatial uncertainty and independent aperture-candidate validation remain future work.
 5. Confirm that every expected PNG/JSON/CSV artifact is produced and contains finite values.
 6. Inspect point targets, cyst ROIs, carotid ROI, and depth behavior for gross artifacts.
 7. Compare metric JSON values with the approved baseline using stated tolerances.

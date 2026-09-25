@@ -39,15 +39,71 @@ without changing its numerical result.
 | Channel-analytic 75-angle carotid cross / UFF RMSE | **4.84 dB** (legacy: 8.07 dB) |
 | Channel-analytic embedded-reference validation | **2 human views + 2 physical phantom scans**, each at 11 and 75 angles |
 | Channel-analytic external checks | **2 EPFL volunteers + 1 Alpinion phantom**, 11/full angles |
-| Legacy real-RF Numba speedup, 75 angles | **21.8×** in the recorded v0.3 run |
-| Legacy real-RF Numba runtime, 75 angles | **2.229 s** on the measured host |
+| Analytic Numba median runtime, 11 angles | **0.140 s** — 3 warm repeats, F/1.5 |
+| Analytic Numba median runtime, 75 angles | **4.934 s** — 3 warm repeats, F/1.5 |
+| Analytic Numba sampled RSS peak, 75 angles | **536.3 MiB** — whole process, separate memory pass |
 | Analytic deep phantom cyst gCNR, 11 angles | **0.926** (legacy: 0.268) |
 | Analytic phantom median lateral FWHM, 11 angles | **0.652 mm** (legacy: 0.599 mm; wider) |
 | Analytic phantom median axial FWHM, 11 angles | **0.577 mm** (legacy: 0.679 mm; narrower) |
-| Automated tests | **48 passing** with local datasets and acceleration extra |
+| Exploratory analytic lateral FWHM, F/0.8 | **0.572 mm** — 11 angles; defaults unchanged |
+| Automated tests | **55 passing** with local datasets and acceleration extra |
 
 Runtimes are hardware-dependent single-host measurements. Image metrics compare normalized
 display images and are research evidence, not clinical-performance claims.
+
+## v0.6: aperture tradeoffs and measured compute cost
+
+The [receive-aperture study](artifacts/aperture_study/README.md) sweeps F/0.8, 1.0, 1.2,
+1.5, 1.7, 2.0 and 2.5 at 11 and 75 angles on the two PICMUS physical phantom acquisitions.
+Lower F-number opens a wider receive aperture. Selection uses only the 11-angle stride-2
+results: minimize lateral FWHM while retaining all seven valid targets, limiting axial
+FWHM increase to 5%, and limiting each cyst's gCNR decrease to 0.02 versus F/1.7.
+
+| Analytic phantom, 11 angles / stride 2 | Baseline F/1.7 | Candidate F/0.8 |
+|---|---:|---:|
+| Median lateral FWHM [mm] | 0.6516 | **0.5719** |
+| Median axial FWHM [mm] | **0.5773** | 0.5812 |
+| Shallow cyst gCNR | **0.9283** | 0.9215 |
+| Deep cyst gCNR | 0.9262 | **0.9286** |
+
+The lateral width narrowed by approximately **12.2%**, with small axial/shallow-contrast
+tradeoffs inside the stated guardrails. A finer-grid repeat also narrowed lateral FWHM,
+from 0.6410 to 0.5522 mm. This repeats the same acquisitions, **not an independent validation**.
+F/0.8 is at the lower sweep boundary; no global optimum or human-data benefit is established.
+Sidelobes and off-axis behavior require further investigation. No reconstruction defaults
+were changed; the F/1.7 measurements in v0.5 below remain the historical baseline.
+
+<p align="center">
+  <img src="artifacts/aperture_study/aperture_tradeoffs.png"
+       alt="F-number sweep: lateral and axial FWHM, shallow and deep cyst gCNR" width="900">
+</p>
+
+The separate [runtime/memory profile](artifacts/runtime_profile/README.md) uses the real
+carotid cross-section at **F/1.5**, stride 2 and 60 dB. It does **not** benchmark the selected
+F/0.8 phantom configuration. Each backend/mode/count runs in a fresh subprocess; one full
+warmup is excluded, followed by three timed repeats. Working-set sampling uses an additional
+call so the memory sampler does not affect reported timings.
+
+| Backend / mode | Angles | Median runtime [s] | Min–max [s] | Sampled process RSS peak [MiB] |
+|---|---:|---:|---:|---:|
+| Numba legacy | 11 | 0.062 | 0.062–0.063 | 263.1 |
+| Numba analytic | 11 | 0.140 | 0.139–0.334 | 296.9 |
+| Numba legacy | 75 | 2.378 | 2.241–2.388 | 310.8 |
+| Numba analytic | 75 | 4.934 | 4.715–5.050 | 536.3 |
+| NumPy legacy | 11 | 6.280 | 6.066–6.416 | 224.5 |
+| NumPy analytic | 11 | 7.356 | 7.028–7.571 | 229.9 |
+
+Analytic processing costs more than legacy real-RF processing. Full-array NumPy/Numba
+agreement passed at 11 angles for both modes. No NumPy 75-angle or GPU/native runtime is
+claimed. RSS includes input data, interpreter, libraries and retained buffers; the sampled
+peak is a lower bound on working-set peak, **not allocated memory**. These single-host
+results, including approximately 7.1 FPS at 11 angles and 0.20 FPS at 75 angles, do not
+demonstrate a production real-time system.
+
+```bash
+ultrasound-aperture-study
+ultrasound-profile --repeats 3
+```
 
 ## v0.5: physical measurements and external analytic validation
 
@@ -346,6 +402,8 @@ ultrasound-roi --output-dir artifacts/roi --angles 75
 ultrasound-external --output-dir artifacts/external_validation
 ultrasound-quality --output-dir artifacts/analytic_quality
 ultrasound-validate-analytic --output-dir artifacts/analytic_validation
+ultrasound-aperture-study --output-dir artifacts/aperture_study
+ultrasound-profile --output-dir artifacts/runtime_profile --repeats 3
 
 python -m unittest discover -s tests -v
 ```
@@ -437,7 +495,9 @@ ultrasound-bmode-lab/
 - Analytic validation covers four PICMUS acquisitions, two EPFL volunteers and one Alpinion
   phantom; none of these results provides population-level or clinical validation.
 - Analytic ROI uncertainty, spatially aware confidence intervals, sparse-angle tuning and
-  updated runtime/memory benchmarks remain to be done.
+  independent validation of the exploratory F/0.8 candidate remain to be done.
+- Runtime/memory profiles cover one host and fixed F/1.5; F/0.8 timing, streaming memory
+  optimization and deployment hardware benchmarks remain to be done.
 - Adaptive methods need parameter studies on independent acquisitions.
 - Bootstrap intervals ignore spatial correlation and between-subject variability.
 - CUDA and C++ runtimes require corresponding local hardware/build tools and were unavailable on

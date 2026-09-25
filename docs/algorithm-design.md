@@ -97,6 +97,23 @@ not model spatial correlation or inter-subject uncertainty.
 
 ## Key design decisions and limitations
 
+### Exploratory aperture selection and performance protocol (v0.6)
+
+The receive F-number sweep changes only aperture width; propagation, interpolation,
+compounding and envelope stages stay fixed. Candidate selection minimizes median lateral
+FWHM at 11 angles/stride 2 subject to valid widths for all seven targets, axial FWHM no more
+than 5% above F/1.7, and each cyst gCNR no more than 0.02 below F/1.7. Repeats at 75 angles
+and stride 1 reuse the same acquisitions. Selection is exploratory, does not change defaults,
+and cannot establish an optimum beyond the sampled parameter range or clinical utility.
+
+Performance profiling fixes F/1.5 on the carotid acquisition, independently of aperture
+selection. Each backend/mode/count uses a fresh sequential subprocess. One full warmup
+includes any cache/JIT overhead; three subsequent full calls measure reconstruction time.
+An additional call samples process RSS at a requested 2 ms interval. Timed calls do not run
+the memory sampler. Working-set baselines include resident data and retained allocator
+buffers, so incremental RSS is not total temporary allocation. Reports retain raw repeats,
+host/dependency information, data hash and full-array 11-angle backend agreement.
+
 - Constant 1,540 m/s sound speed can cause target-position and focus errors in heterogeneous
   tissue.
 - Linear delay interpolation is transparent but less accurate than higher-order interpolation.

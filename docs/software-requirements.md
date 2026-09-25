@@ -1,6 +1,6 @@
 # Software requirements specification
 
-Status: research baseline, revision 3 (analytic phantom and external validation)
+Status: research baseline, revision 4 (aperture exploration and runtime profiling)
 
 This specification defines verifiable behavior for the ultrasound B-mode laboratory. The
 software is educational/research software and is not intended for diagnosis, treatment,
@@ -42,6 +42,9 @@ channel files remain outside Git.
 | MET-006 | Matched phantom evaluation shall retain fixed ROIs, shared-grid references and per-target validity. | Both modes at 11/75 angles and seven target records are exported, with finite-count and null handling. |
 | MET-007 | Output-grid consistency shall preserve amplitude-scale differences at shared coordinates. | A factor-two envelope discrepancy is not hidden by independent normalization; misaligned axes fail. |
 | DATA-006 | External analytic evaluation shall explicitly label same-mode full-angle references. | Reports keep separate mode scores and disclaim independent/clinical accuracy; data/settings hashes retained. |
+| ALG-014 | Aperture candidate selection shall use predeclared contrast, axial-width and validity guardrails. | Only 11-angle stride-2 records participate; invalid measurements and guardrail violations are excluded; defaults stay unchanged. |
+| PERF-004 | Profiling shall separate warmup, repeated timing and sampled working-set passes. | At least two timed repeats; one warmup and one additional RSS pass; raw durations and baseline/peak RSS retained. |
+| PERF-005 | Cross-backend profiling shall check full-array agreement where both are measured. | Real and analytic 11-angle RF/B-mode outputs meet existing numerical tolerances. |
 | SAFE-001 | Every public-facing description shall identify the software as non-clinical. | README and lifecycle documentation contain the intended-use limitation. |
 
 ## Quality attributes
