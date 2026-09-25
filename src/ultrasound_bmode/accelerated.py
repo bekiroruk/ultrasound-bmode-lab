@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from numbers import Integral
 
 import numpy as np
 from scipy.signal import hilbert
@@ -151,28 +152,32 @@ def numba_plane_wave_delay_and_sum(
     f_number: float = 1.5,
     dynamic_range_db: float = 60.0,
     analytic: bool = False,
+    angle_batch_size: int | None = None,
 ) -> PlaneWaveResult:
     """Run CPWC; analytic mode focuses channel analytic signals before magnitude.
 
     The legacy mode takes the Hilbert transform along the output depth grid.
     Analytic mode avoids that operation on a potentially undersampled RF grid.
     The complex result in ``rf`` is analytic RF, not baseband-demodulated IQ.
+    Optional angle batching bounds temporary channel/Hilbert arrays, not the
+    resident input acquisition. Complex batch means are weighted by their angle
+    counts before envelope extraction; the final short batch is not overweighted.
     """
     if njit is None:
         raise ImportError("Numba backend requires `pip install -e .[accelerated]`")
     if lateral_stride <= 0 or axial_stride <= 0 or f_number <= 0:
         raise ValueError("strides and f_number must be positive")
+    if angle_batch_size is not None and (
+        isinstance(angle_batch_size, bool) or not isinstance(angle_batch_size, Integral)
+        or angle_batch_size <= 0
+    ):
+        raise ValueError("angle_batch_size must be a positive integer or None")
     x_axis = np.ascontiguousarray(acquisition.x_axis_m[::lateral_stride])
     z_axis = np.ascontiguousarray(acquisition.z_axis_m[::axial_stride])
     angle_indices = np.ascontiguousarray(
         select_transmit_indices(acquisition.transmit_angles_rad, angle_count)
     )
-    channel = np.ascontiguousarray(acquisition.channel_data[angle_indices])
-    angles = np.ascontiguousarray(acquisition.transmit_angles_rad[angle_indices])
-    selected = np.arange(angle_indices.size)
-    arguments = (
-        angles,
-        selected,
+    arguments_tail = (
         np.ascontiguousarray(acquisition.element_x_m),
         x_axis,
         z_axis,
@@ -181,10 +186,21 @@ def numba_plane_wave_delay_and_sum(
         acquisition.initial_time_s,
         f_number,
     )
-    rf = _numba_das_kernel(channel, *arguments)
-    if analytic:
-        quadrature = np.ascontiguousarray(hilbert(channel, axis=-1).imag)
-        rf = rf + 1j * _numba_das_kernel(quadrature, *arguments)
+    batch_size = angle_indices.size if angle_batch_size is None else angle_batch_size
+    rf = np.zeros((z_axis.size, x_axis.size), dtype=complex if analytic else float)
+    for start in range(0, angle_indices.size, batch_size):
+        batch_indices = angle_indices[start:start + batch_size]
+        channel = np.ascontiguousarray(acquisition.channel_data[batch_indices])
+        angles = np.ascontiguousarray(acquisition.transmit_angles_rad[batch_indices])
+        arguments = (angles, np.arange(batch_indices.size), *arguments_tail)
+        focused = _numba_das_kernel(channel, *arguments)
+        if analytic:
+            quadrature = np.ascontiguousarray(hilbert(channel, axis=-1).imag)
+            focused = focused + 1j * _numba_das_kernel(quadrature, *arguments)
+            del quadrature
+        rf += focused * (batch_indices.size / angle_indices.size)
+        # Avoid keeping one batch's channel buffer alive while allocating the next.
+        del channel, focused
     envelope = np.abs(rf) if analytic else envelope_detect(rf)
     bmode = log_compress(envelope, dynamic_range_db)
     return PlaneWaveResult(rf, bmode, x_axis, z_axis, angle_indices)

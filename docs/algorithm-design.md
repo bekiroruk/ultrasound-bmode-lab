@@ -97,6 +97,28 @@ not model spatial correlation or inter-subject uncertainty.
 
 ## Key design decisions and limitations
 
+### Frozen transfer and angle batching (v0.7)
+
+The F/0.8 candidate selected on two PICMUS phantom acquisitions is compared, without retuning,
+with F/1.7 on PICMUS carotid cross/longitudinal views, two EPFL volunteer acquisitions and the
+Alpinion phantom. These acquisitions were excluded from the aperture sweep but had already
+been inspected in earlier project stages: this is not a new blinded clinical validation.
+Only the PICMUS views have embedded reconstruction references. Similarity between aperture
+outputs on the other cases measures change, not correctness or clinical quality.
+
+Numba CPWC accepts optional `angle_batch_size`. Physical angle selection is performed once;
+each batch prepares only its own channel and quadrature buffers. The kernel returns an angle
+mean for a batch of size `n_b`; the compound accumulator adds `n_b / N * batch_mean` before
+any magnitude, Hilbert-on-output (legacy mode) or compression. The smaller final batch is
+therefore weighted correctly. Buffers are released before constructing the next batch.
+All channel RF still resides in the acquisition object: this is not disk/device streaming.
+Default `None` retains the unbatched computation, and both aperture and batch defaults remain
+unchanged. Floating-point accumulation order differs, so equivalence is tolerance-based.
+
+Batch runtime experiments use fresh sequential processes, separate timing/RSS passes and
+full-array agreement against an unbatched result at the same aperture. F/0.8 timing is recorded
+separately from F/1.5. These timings cannot establish that either aperture is clinically better.
+
 ### Exploratory aperture selection and performance protocol (v0.6)
 
 The receive F-number sweep changes only aperture width; propagation, interpolation,

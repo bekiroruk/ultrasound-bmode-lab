@@ -1,6 +1,6 @@
 # Software requirements specification
 
-Status: research baseline, revision 4 (aperture exploration and runtime profiling)
+Status: research baseline, revision 5 (frozen aperture transfer and bounded angle batches)
 
 This specification defines verifiable behavior for the ultrasound B-mode laboratory. The
 software is educational/research software and is not intended for diagnosis, treatment,
@@ -45,6 +45,9 @@ channel files remain outside Git.
 | ALG-014 | Aperture candidate selection shall use predeclared contrast, axial-width and validity guardrails. | Only 11-angle stride-2 records participate; invalid measurements and guardrail violations are excluded; defaults stay unchanged. |
 | PERF-004 | Profiling shall separate warmup, repeated timing and sampled working-set passes. | At least two timed repeats; one warmup and one additional RSS pass; raw durations and baseline/peak RSS retained. |
 | PERF-005 | Cross-backend profiling shall check full-array agreement where both are measured. | Real and analytic 11-angle RF/B-mode outputs meet existing numerical tolerances. |
+| ALG-015 | Optional angle batching shall preserve coherent compounding and physical angle selection. | Non-divisible batches, batch one, oversized batches, real/analytic modes match NumPy; inputs remain unchanged. |
+| DATA-007 | The F/0.8 transfer study shall freeze aperture settings without retuning on evaluation acquisitions. | Both F/1.7 and F/0.8 reported per acquisition; unavailable references are null, not self-references labeled as accuracy. |
+| PERF-006 | Batched performance comparisons shall use fresh processes and same-F-number unbatched references. | Each measured batch passes full-array RF and B-mode parity against its matching baseline; timing/RSS protocols remain separate. |
 | SAFE-001 | Every public-facing description shall identify the software as non-clinical. | README and lifecycle documentation contain the intended-use limitation. |
 
 ## Quality attributes

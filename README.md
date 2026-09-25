@@ -39,17 +39,87 @@ without changing its numerical result.
 | Channel-analytic 75-angle carotid cross / UFF RMSE | **4.84 dB** (legacy: 8.07 dB) |
 | Channel-analytic embedded-reference validation | **2 human views + 2 physical phantom scans**, each at 11 and 75 angles |
 | Channel-analytic external checks | **2 EPFL volunteers + 1 Alpinion phantom**, 11/full angles |
-| Analytic Numba median runtime, 11 angles | **0.140 s** — 3 warm repeats, F/1.5 |
-| Analytic Numba median runtime, 75 angles | **4.934 s** — 3 warm repeats, F/1.5 |
-| Analytic Numba sampled RSS peak, 75 angles | **536.3 MiB** — whole process, separate memory pass |
+| Unbatched analytic Numba runtime, 11 angles (v0.6) | **0.140 s** — 3 warm repeats, F/1.5 |
+| Batch-8 analytic Numba median runtime, 75 angles | **3.251 s** — matched unbatched baseline 4.622 s, F/1.5 |
+| Batch-8 sampled RSS peak, 75 angles | **285.7 MiB** — matched unbatched baseline 537.0 MiB |
 | Analytic deep phantom cyst gCNR, 11 angles | **0.926** (legacy: 0.268) |
 | Analytic phantom median lateral FWHM, 11 angles | **0.652 mm** (legacy: 0.599 mm; wider) |
 | Analytic phantom median axial FWHM, 11 angles | **0.577 mm** (legacy: 0.679 mm; narrower) |
 | Exploratory analytic lateral FWHM, F/0.8 | **0.572 mm** — 11 angles; defaults unchanged |
-| Automated tests | **55 passing** with local datasets and acceleration extra |
+| Automated tests | **62 passing** with local datasets and acceleration extra |
 
 Runtimes are hardware-dependent single-host measurements. Image metrics compare normalized
 display images and are research evidence, not clinical-performance claims.
+
+## v0.7: frozen aperture transfer and bounded angle batches
+
+The [frozen transfer study](artifacts/aperture_transfer/README.md) takes F/0.8 from the
+phantom sweep without retuning it on the evaluation acquisitions. It compares F/1.7 and
+F/0.8 on two PICMUS carotid views, two EPFL volunteer acquisitions and the Alpinion phantom,
+at 11 and full available angles. These files were excluded from the aperture sweep but
+were already inspected in earlier project stages; this is not a new blinded clinical study.
+
+| PICMUS reference similarity | F/1.7 SSIM | F/0.8 SSIM |
+|---|---:|---:|
+| Carotid cross, 11 angles | 0.456 | 0.420 |
+| Carotid cross, 75 angles | 0.715 | 0.654 |
+| Carotid longitudinal, 11 angles | 0.554 | 0.501 |
+| Carotid longitudinal, 75 angles | 0.748 | 0.650 |
+
+The phantom improvement did **not** establish a general advantage: all four embedded-reference
+SSIM comparisons fell. The reference is algorithmic, not anatomical ground truth; this does
+not establish clinical inferiority either. EPFL and Alpinion lack independent references,
+so their report contains images and aperture-change measurements, not invented accuracy
+scores. **F/0.8 remains exploratory and no aperture defaults have changed.**
+
+An independent implementation improvement adds optional `angle_batch_size` to Numba CPWC.
+It prepares channel/quadrature arrays for a bounded group of selected angles, combines batch
+means with their correct angle-count weights, and extracts the envelope only after coherent
+compounding. Partial final batches are handled explicitly. The raw acquisition still resides
+in memory: this is temporary-buffer reduction, **not disk/device streaming**.
+
+All **20 full RF/B-mode comparisons** across the five acquisitions, two angle counts and two
+apertures passed against the unbatched implementation. Dataset-independent tests also cover
+batch size 1, uneven batches, oversized batches, both real/analytic modes and unchanged input
+channels. Equality is tolerance-based because floating-point accumulation order changes.
+
+```python
+from ultrasound_bmode.accelerated import numba_plane_wave_delay_and_sum
+from ultrasound_bmode.real_data import load_picmus_uff
+
+acquisition = load_picmus_uff("data/raw/PICMUS_carotid_cross.uff")
+result = numba_plane_wave_delay_and_sum(
+    acquisition, angle_count=75, analytic=True, angle_batch_size=16,
+)
+```
+
+`angle_batch_size=None` remains the default. The
+[batch runtime/memory profile](artifacts/batch_profile/README.md) compares full 75-angle
+analytic reconstruction with batches of 8/16/32 at F/1.5, and a separate unbatched/batch-16
+comparison at F/0.8. Each configuration uses a fresh sequential process, three timed repeats
+after a full warmup, and a separate RSS pass. All batched arrays must match the unbatched
+result **at the same F-number** before the report is written.
+
+| F-number | Angle batch | Median runtime [s] | Sampled process RSS peak [MiB] |
+|---:|---|---:|---:|
+| 1.5 | All 75 | 4.622 | 537.0 |
+| 1.5 | 8 | **3.251** | **285.7** |
+| 1.5 | 16 | 3.450 | 316.2 |
+| 1.5 | 32 | 3.808 | 376.2 |
+| 0.8 | All 75 | 7.624 | 535.0 |
+| 0.8 | 16 | **4.931** | **315.9** |
+
+On this host, batch 8 at F/1.5 reduced median duration by approximately **30%** and sampled
+peak working set by approximately **47%**, without changing the output beyond tolerance.
+The F/0.8 runtime is now measured separately; it remains slower and is not promoted based
+on this timing experiment. RSS is a sampled whole-process lower bound on peak residency,
+not total temporary allocation. Even the fastest 75-angle configuration here is only about
+0.31 FPS, so these measurements do not establish real-time imaging.
+
+```bash
+ultrasound-aperture-transfer
+ultrasound-batch-profile --repeats 3
+```
 
 ## v0.6: aperture tradeoffs and measured compute cost
 
@@ -404,6 +474,8 @@ ultrasound-quality --output-dir artifacts/analytic_quality
 ultrasound-validate-analytic --output-dir artifacts/analytic_validation
 ultrasound-aperture-study --output-dir artifacts/aperture_study
 ultrasound-profile --output-dir artifacts/runtime_profile --repeats 3
+ultrasound-aperture-transfer --output-dir artifacts/aperture_transfer
+ultrasound-batch-profile --output-dir artifacts/batch_profile --repeats 3
 
 python -m unittest discover -s tests -v
 ```
@@ -494,10 +566,12 @@ ultrasound-bmode-lab/
 - Analytic phantom contrast and axial FWHM improved, but lateral FWHM widened in this study.
 - Analytic validation covers four PICMUS acquisitions, two EPFL volunteers and one Alpinion
   phantom; none of these results provides population-level or clinical validation.
-- Analytic ROI uncertainty, spatially aware confidence intervals, sparse-angle tuning and
-  independent validation of the exploratory F/0.8 candidate remain to be done.
-- Runtime/memory profiles cover one host and fixed F/1.5; F/0.8 timing, streaming memory
-  optimization and deployment hardware benchmarks remain to be done.
+- Analytic ROI uncertainty, spatially aware confidence intervals and sparse-angle tuning
+  remain to be done. Frozen F/0.8 transfer reduced PICMUS reference similarity, so it is not
+  promoted as a general default or clinically better aperture.
+- Runtime/memory profiles cover one host at F/1.5 and F/0.8. Angle batching reduces temporary
+  working buffers, but the complete raw acquisition is still resident; true streaming,
+  deployment hardware and sustained frame-sequence benchmarks remain to be done.
 - Adaptive methods need parameter studies on independent acquisitions.
 - Bootstrap intervals ignore spatial correlation and between-subject variability.
 - CUDA and C++ runtimes require corresponding local hardware/build tools and were unavailable on
