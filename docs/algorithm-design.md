@@ -15,7 +15,7 @@ verified UFF
 ```
 
 The conventional implementation favors readability and keeps all dimensions visible. The
-Numba backend implements the same delay, interpolation, aperture, and normalization equations
+Numba backend implements the same delay, selectable interpolation, aperture, and normalization equations
 in a parallel compiled loop. Tests compare both backends directly.
 
 ## Propagation model
@@ -96,6 +96,22 @@ evidence. Pixel bootstrap intervals quantify sampling variability inside the sel
 not model spatial correlation or inter-subject uncertainty.
 
 ## Key design decisions and limitations
+
+### Cubic delay interpolation and sound-speed sensitivity (v0.9)
+
+Linear fractional delay uses samples at `floor(s)` and `floor(s)+1`. The optional cubic path
+uses the surrounding four samples and Catmull–Rom convolution. Because its support extends one
+sample farther on both sides, it rejects positions for which `floor(s)-1` or `floor(s)+2` lies
+outside the channel. The same polynomial is applied separately to real and quadrature channels
+in the Numba analytic path. Linear remains the default, and CUDA/native paths are unchanged.
+
+A controlled bandlimited sinusoid verifies interpolation error independently of image metrics.
+The measured study then fixes F/1.7, stride 2, analytic processing and angle batches of 8 while
+comparing linear/cubic reconstruction at 11 and all 75 angles on the two PICMUS phantoms. A
+separate cubic 11-angle sweep changes only assumed homogeneous sound speed from 1460 to 1620 m/s.
+It records cyst, point-target and same-acquisition embedded-reference metrics without optimizing
+on them. The embedded image is an algorithmic reference, nominal target coordinates are
+approximate, and the sweep does not estimate tissue-specific sound speed.
 
 ### Reusable analytic-channel cache (v0.8)
 

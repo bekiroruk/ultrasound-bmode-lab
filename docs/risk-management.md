@@ -10,8 +10,8 @@ are present and verified.
 | ID | Hazardous situation / possible harm | Initial risk | Control | Verification | Residual risk |
 |---|---|---:|---|---|---:|
 | R-001 | A reconstruction is mistaken for a diagnostic image, leading to an unsupported clinical decision. | High | Non-clinical intended-use statement; no diagnosis output; dataset and algorithm limitations displayed. | README/document review. | Medium |
-| R-002 | Incorrect sound speed or timing shifts anatomy or phantom targets. | High | UFF metadata is authoritative; timing is tested; position error is measured on a physical phantom. | `DATA-001`, `ALG-001`, phantom JSON. | Medium |
-| R-003 | Delay/interpolation defect creates false structures. | High | Independent synthetic impulse fixture; NumPy/Numba agreement; reference correlation and RMSE. | `ALG-001`, `ALG-002`, `PERF-001`. | Medium |
+| R-002 | Incorrect sound speed or timing shifts anatomy or phantom targets. | High | UFF metadata is authoritative; timing is tested; fixed sound-speed sensitivity is reported without retuning on approximate target coordinates. | `DATA-001`, `ALG-001`, `MET-008`, phantom JSON. | Medium |
+| R-003 | Delay/interpolation defect creates false structures. | High | Independent synthetic fixtures; linear/cubic NumPy/Numba agreement; measured phantom comparison; reference correlation and RMSE. | `ALG-001`, `ALG-002`, `ALG-017`, `PERF-001`. | Medium |
 | R-004 | Aggressive adaptive beamforming removes true low-coherence tissue. | High | Adaptive methods are separate named baselines; DAS remains default; all metrics and images are retained. | Adaptive comparison artifact. | Medium |
 | R-005 | TGC or despeckling makes an image visually attractive while reducing fidelity. | High | Stage-by-stage ablation against the reference; no automatic replacement of the baseline. | Enhancement metrics JSON. | Medium |
 | R-006 | Biased ROI placement inflates a quality metric. | Medium | ROI geometry is stored, overlaid, applied to both images, and accompanied by bootstrap intervals. | ROI tests and overlay. | Low–medium |

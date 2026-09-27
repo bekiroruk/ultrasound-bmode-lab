@@ -47,6 +47,8 @@ make a clinical claim, or process data in a care-delivery workflow.
 | PERF-006 | Batched profiles shall compare only like-for-like configurations. | `BatchProfileReportTests` and measured batch report | Six sequential configurations use correct same-F-number baseline; full-array RF/B-mode agreement required before publishing measurements. |
 | ALG-016 | Reusable analytic cache shall preserve output and reject invalid reuse. | `test_analytic_cache.py` | Batched preparation matches SciPy Hilbert; cached/uncached output agrees; wrong source, shape, dtype, type and mode are rejected. |
 | PERF-007 | Cache performance evidence shall separate preparation, repeated timing and memory. | `CacheProfileReportTests` and `artifacts/cache_profile/metrics.json` | Four fresh-process cases retain preparation time/bytes, raw repeats, RSS, break-even calculation and full-array parity. |
+| ALG-017 | Cubic channel-delay interpolation shall reduce controlled fractional-delay error and preserve backend parity. | `DelayInterpolationTests` | Cubic sinusoid RMSE is less than 20% of linear; NumPy/Numba real/analytic outputs agree; invalid method/support fails. |
+| MET-008 | Measured interpolation/sound-speed study shall retain scope and non-selection limits. | `InterpolationStudyReportTests` and `artifacts/interpolation_study/metrics.json` | Both methods at 11/full angles and all five fixed speeds are present; defaults explicitly remain unchanged. |
 
 ## Reproducibility controls
 
@@ -63,7 +65,7 @@ make a clinical claim, or process data in a care-delivery workflow.
 | Risk | Existing control | Further work before real-data use |
 |---|---|---|
 | Incorrect propagation-speed assumption | One explicit configuration value; synthetic focus test | Add speed-of-sound sensitivity study and calibration dataset. |
-| Delay/interpolation error | Fractional linear interpolation and axial tolerance test | Compare with higher-order interpolation and an analytical point-spread function. |
+| Delay/interpolation error | Linear/cubic parity, analytical sinusoid error and measured phantom comparison | Add higher-order analytical point-spread-function and bandwidth sweeps. |
 | Limited generalization | Four in-vivo carotid acquisitions, two explicit EPFL volunteers, three probes, and physical phantom cross-platform evidence | Add more subjects, disease states, operators, laboratories, and multi-vendor human acquisitions. |
 | ROI selection bias | Stored/overlaid geometry, common ROI, registration, and bootstrap intervals | Add blinded multi-observer ROIs and spatial uncertainty. |
 | Numerical or dependency regression | Unit tests and versioned CI environment | Lock validated dependency versions for a formal release. |
@@ -77,7 +79,7 @@ make a clinical claim, or process data in a care-delivery workflow.
 4. Run the synthetic, angle benchmark, adaptive, phantom, enhancement, acceleration, ROI, external,
    `ultrasound-quality`, `ultrasound-validate-analytic`, `ultrasound-aperture-study` and
    `ultrasound-profile`, `ultrasound-aperture-transfer`, `ultrasound-batch-profile` and
-   `ultrasound-cache-profile` commands
+   `ultrasound-cache-profile` and `ultrasound-interpolation-study` commands
    documented in the README. Run profiling after other compute
    experiments finish; do not benchmark backends concurrently.
    Keep legacy and analytic results separate. Analytic fixed-ROI/FWHM measurements are

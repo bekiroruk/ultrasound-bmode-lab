@@ -11,7 +11,12 @@ import numpy as np
 from scipy.signal import hilbert
 
 from .processing import envelope_detect, log_compress
-from .real_data import PlaneWaveResult, UFFAcquisition, select_transmit_indices
+from .real_data import (
+    PlaneWaveResult,
+    UFFAcquisition,
+    _validate_delay_interpolation,
+    select_transmit_indices,
+)
 
 try:
     from numba import cuda, njit, prange
@@ -97,6 +102,7 @@ if njit is not None:
         sound_speed,
         initial_time,
         f_number,
+        interpolation_order,
     ):
         output = np.zeros((z_axis.size, x_axis.size), dtype=np.float64)
         for x_index in prange(x_axis.size):
@@ -123,12 +129,26 @@ if njit is not None:
                             (transmit_distance + receive_distance) / sound_speed - initial_time
                         ) * sampling_frequency
                         lower = int(np.floor(sample_position))
-                        if lower < 0 or lower + 1 >= channel_data.shape[2]:
-                            continue
                         fraction = sample_position - lower
-                        lower_value = channel_data[angle_index, element_index, lower]
-                        upper_value = channel_data[angle_index, element_index, lower + 1]
-                        delayed = lower_value * (1.0 - fraction) + upper_value * fraction
+                        if interpolation_order == 1:
+                            if lower < 0 or lower + 1 >= channel_data.shape[2]:
+                                continue
+                            lower_value = channel_data[angle_index, element_index, lower]
+                            upper_value = channel_data[angle_index, element_index, lower + 1]
+                            delayed = lower_value * (1.0 - fraction) + upper_value * fraction
+                        else:
+                            if lower - 1 < 0 or lower + 2 >= channel_data.shape[2]:
+                                continue
+                            p0 = channel_data[angle_index, element_index, lower - 1]
+                            p1 = channel_data[angle_index, element_index, lower]
+                            p2 = channel_data[angle_index, element_index, lower + 1]
+                            p3 = channel_data[angle_index, element_index, lower + 2]
+                            delayed = p1 + 0.5 * fraction * (
+                                p2 - p0 + fraction * (
+                                    2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3
+                                    + fraction * (3.0 * (p1 - p2) + p3 - p0)
+                                )
+                            )
                         weight = 0.5 * (1.0 + np.cos(np.pi * normalized_offset))
                         numerator += delayed * weight
                         normalizer += weight
@@ -218,6 +238,7 @@ def numba_plane_wave_delay_and_sum(
     analytic: bool = False,
     angle_batch_size: int | None = None,
     analytic_cache: AnalyticChannelCache | None = None,
+    interpolation: str = "linear",
 ) -> PlaneWaveResult:
     """Run CPWC; analytic mode focuses channel analytic signals before magnitude.
 
@@ -234,6 +255,9 @@ def numba_plane_wave_delay_and_sum(
         raise ImportError("Numba backend requires `pip install -e .[accelerated]`")
     if lateral_stride <= 0 or axial_stride <= 0 or f_number <= 0:
         raise ValueError("strides and f_number must be positive")
+    interpolation_order = _validate_delay_interpolation(
+        interpolation, acquisition.channel_data.shape[-1]
+    )
     if angle_batch_size is not None:
         angle_batch_size = _positive_integer(angle_batch_size, "angle_batch_size")
     if analytic_cache is not None:
@@ -253,6 +277,7 @@ def numba_plane_wave_delay_and_sum(
         acquisition.sound_speed_m_s,
         acquisition.initial_time_s,
         f_number,
+        interpolation_order,
     )
     batch_size = angle_indices.size if angle_batch_size is None else angle_batch_size
     rf = np.zeros((z_axis.size, x_axis.size), dtype=complex if analytic else float)

@@ -1,6 +1,6 @@
 # Software requirements specification
 
-Status: research baseline, revision 6 (reusable analytic-channel cache)
+Status: research baseline, revision 7 (delay interpolation and sound-speed sensitivity)
 
 This specification defines verifiable behavior for the ultrasound B-mode laboratory. The
 software is educational/research software and is not intended for diagnosis, treatment,
@@ -22,7 +22,7 @@ channel files remain outside Git.
 | DATA-003 | The EPFL adapter shall verify RF dimensions against steering, probe, and time-axis settings. | Inconsistent angle, element, sample, or sampling metadata is rejected. |
 | DATA-004 | Large EPFL archives shall support selective, integrity-checked member retrieval. | The selected member passes byte-size, ZIP CRC32, and recorded SHA-256 checks. |
 | ALG-001 | The beamformer shall calculate plane-wave transmit and element-dependent receive propagation time in SI units. | A controlled impulse focuses within two axial samples. |
-| ALG-002 | Fractional sample positions shall use linear interpolation and reject out-of-range samples. | Coarse measured-data output is finite and shape-correct. |
+| ALG-002 | Fractional sample positions shall support reproducible linear interpolation and reject out-of-range samples. | Coarse measured-data output is finite and shape-correct. |
 | ALG-003 | Receive aperture shall vary with depth and use bounded cosine apodization. | Invalid F-number is rejected; aperture weights remain finite. |
 | ALG-004 | The system shall coherently compound reproducible subsets of the available transmissions. | Selection follows physical angle values and includes published steering extremes where applicable. |
 | ALG-005 | The display chain shall support analytic-envelope detection and bounded log compression. | Peak is 0 dB and floor equals the selected range. |
@@ -50,6 +50,8 @@ channel files remain outside Git.
 | PERF-006 | Batched performance comparisons shall use fresh processes and same-F-number unbatched references. | Each measured batch passes full-array RF and B-mode parity against its matching baseline; timing/RSS protocols remain separate. |
 | ALG-016 | A reusable analytic cache shall be bound to one exact real channel-data array and shall not be accepted by non-analytic reconstruction. | Wrong-source, malformed, wrong-type and non-analytic uses fail; cached/uncached RF and B-mode outputs agree. |
 | PERF-007 | Cache profiling shall report preparation cost separately from repeated reconstruction and retain the memory tradeoff. | Fresh-process cached/uncached pairs report raw repeats, cache bytes, preparation time, sampled RSS and full-array parity. |
+| ALG-017 | Optional four-sample cubic fractional-delay interpolation shall be numerically consistent across NumPy and Numba without changing the linear default. | Cubic reduces error on an analytical sinusoid; real/analytic backend outputs agree; invalid method/support is rejected. |
+| MET-008 | Interpolation and assumed sound-speed sensitivity shall be reported on both measured PICMUS phantoms without selecting a setting from approximate target coordinates. | Linear/cubic 11/full-angle metrics and a fixed 1460–1620 m/s sweep retain physical metrics, embedded-reference similarity and limitations. |
 | SAFE-001 | Every public-facing description shall identify the software as non-clinical. | README and lifecycle documentation contain the intended-use limitation. |
 
 ## Quality attributes

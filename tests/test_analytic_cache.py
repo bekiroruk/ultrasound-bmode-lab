@@ -54,14 +54,17 @@ class AnalyticCacheTests(unittest.TestCase):
     def test_cached_and_uncached_outputs_match_for_multiple_selections(self):
         acquisition = fixture()
         cache = prepare_analytic_channel_cache(acquisition, 2)
-        for count, batch in ((1, 1), (5, 2), (7, 3), (7, None)):
-            with self.subTest(count=count, batch=batch):
+        for count, batch, interpolation in (
+            (1, 1, "linear"), (5, 2, "cubic"), (7, 3, "linear"), (7, None, "cubic")
+        ):
+            with self.subTest(count=count, batch=batch, interpolation=interpolation):
                 expected = numba_plane_wave_delay_and_sum(
-                    acquisition, angle_count=count, analytic=True, angle_batch_size=batch
+                    acquisition, angle_count=count, analytic=True, angle_batch_size=batch,
+                    interpolation=interpolation,
                 )
                 actual = numba_plane_wave_delay_and_sum(
                     acquisition, angle_count=count, analytic=True, angle_batch_size=batch,
-                    analytic_cache=cache,
+                    analytic_cache=cache, interpolation=interpolation,
                 )
                 np.testing.assert_array_equal(actual.angle_indices, expected.angle_indices)
                 np.testing.assert_allclose(actual.rf, expected.rf, rtol=1e-6, atol=1e-8)

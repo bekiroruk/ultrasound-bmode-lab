@@ -44,14 +44,72 @@ without changing its numerical result.
 | Batch-8 sampled RSS peak, 75 angles | **285.7 MiB** — matched unbatched baseline 537.0 MiB |
 | Cached batch-8 analytic runtime, 75 angles (v0.8) | **0.810 s** — matched uncached 0.988 s; five repeats |
 | Reusable analytic cache cost | **56.25 MiB** + 0.160–0.168 s one-time preparation |
+| Cubic fractional-delay synthetic RMSE | **0.00555** — linear 0.03929 on controlled 5 MHz fixture |
+| Cubic 11-angle shallow/deep phantom gCNR | **0.940 / 0.928** — linear 0.928 / 0.926 |
+| Metadata sound speed sensitivity | **1540 m/s retained** — strongest cyst/reference evidence in sweep |
 | Analytic deep phantom cyst gCNR, 11 angles | **0.926** (legacy: 0.268) |
 | Analytic phantom median lateral FWHM, 11 angles | **0.652 mm** (legacy: 0.599 mm; wider) |
 | Analytic phantom median axial FWHM, 11 angles | **0.577 mm** (legacy: 0.679 mm; narrower) |
 | Exploratory analytic lateral FWHM, F/0.8 | **0.572 mm** — 11 angles; defaults unchanged |
-| Automated tests | **69 passing** with local datasets and acceleration extra |
+| Automated tests | **73 passing** with local datasets and acceleration extra |
 
 Runtimes are hardware-dependent single-host measurements. Image metrics compare normalized
 display images and are research evidence, not clinical-performance claims.
+
+## v0.9: cubic delay interpolation and sound-speed sensitivity
+
+The NumPy and Numba DAS paths now accept `interpolation="linear"` or `"cubic"`. The opt-in
+cubic path uses four adjacent channel samples with Catmull–Rom convolution; linear remains the
+default for historical reproducibility. Invalid methods and insufficient sample support fail
+before reconstruction. NumPy/Numba parity is tested in both real and channel-analytic modes,
+including use with angle batching and the reusable analytic cache.
+
+On a controlled 5 MHz sinusoid sampled at 40 MHz, cubic fractional-delay RMSE fell from
+0.03929 to 0.00555, an approximately 86% reduction. The separate
+[measured-phantom study](artifacts/interpolation_study/README.md) then compared both methods on
+the two real PICMUS device acquisitions at 11 and 75 angles.
+
+| Physical phantom metric | Linear | Cubic |
+|---|---:|---:|
+| 11-angle shallow cyst gCNR | 0.9283 | **0.9396** |
+| 11-angle deep cyst gCNR | 0.9262 | **0.9275** |
+| 11-angle lateral FWHM | 0.6516 mm | **0.6508 mm** |
+| 11-angle axial FWHM | 0.5773 mm | **0.5742 mm** |
+| 75-angle shallow cyst gCNR | 0.9681 | **0.9730** |
+| 75-angle deep cyst gCNR | 0.9337 | **0.9378** |
+| 75-angle lateral FWHM | 0.6530 mm | **0.6523 mm** |
+| 75-angle axial FWHM | 0.5746 mm | **0.5724 mm** |
+
+The physical measurements improved slightly, but embedded-reference SSIM did not improve in
+every case—for example resolution SSIM changed from 0.7055 to 0.7049 at 11 angles. Cubic is
+therefore available for experiments but is **not promoted to the default**.
+
+The same study swept assumed homogeneous sound speed from 1460 to 1620 m/s with cubic
+interpolation, 11 angles and fixed geometry. The metadata value 1540 m/s produced the strongest
+combined cyst and embedded-reference evidence: shallow/deep gCNR 0.9396/0.9275 and resolution/
+contrast SSIM 0.7049/0.8524. Other speeds sharply reduced reference SSIM and deep-cyst gCNR.
+Nominal point coordinates are approximate—the falling position RMSE at higher speeds is not a
+calibration result—so no sound speed was tuned or selected and the metadata value remains in use.
+
+<p align="center">
+  <img src="artifacts/interpolation_study/sound_speed_sensitivity.png"
+       alt="Measured phantom image metrics across assumed sound speeds" width="1000">
+</p>
+
+```python
+result = numba_plane_wave_delay_and_sum(
+    acquisition,
+    angle_count=75,
+    analytic=True,
+    angle_batch_size=8,
+    analytic_cache=cache,
+    interpolation="cubic",
+)
+```
+
+```bash
+ultrasound-interpolation-study
+```
 
 ## v0.8: reusable analytic-channel cache
 
@@ -620,7 +678,8 @@ ultrasound-bmode-lab/
   not yet demonstrated. Alpinion coverage is currently limited to a physical phantom.
 - The UFF image is an algorithmic reference, not anatomical or diagnostic ground truth.
 - EPFL/Alpinion sparse-angle metrics use same-acquisition full-angle CPWC references.
-- Constant sound speed, linear interpolation, and simplified receive modelling remain.
+- A homogeneous sound-speed assumption and simplified receive modelling remain; cubic delay
+  interpolation is opt-in and was evaluated only on the available physical phantoms.
 - Analytic phantom contrast and axial FWHM improved, but lateral FWHM widened in this study.
 - Analytic validation covers four PICMUS acquisitions, two EPFL volunteers and one Alpinion
   phantom; none of these results provides population-level or clinical validation.

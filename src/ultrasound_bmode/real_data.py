@@ -153,6 +153,15 @@ def select_transmit_indices(angles_rad: np.ndarray, count: int) -> np.ndarray:
     return np.asarray(selected, dtype=int)
 
 
+def _validate_delay_interpolation(interpolation: str, sample_count: int) -> int:
+    choices = {"linear": 1, "cubic": 3}
+    if interpolation not in choices:
+        raise ValueError(f"interpolation must be one of {sorted(choices)}")
+    if interpolation == "cubic" and sample_count < 4:
+        raise ValueError("cubic interpolation requires at least four channel samples")
+    return choices[interpolation]
+
+
 def beamform_plane_wave(
     acquisition: UFFAcquisition,
     angle_index: int,
@@ -163,6 +172,7 @@ def beamform_plane_wave(
     mvdr_subarray_size: int = 16,
     diagonal_loading: float = 0.05,
     analytic: bool = False,
+    interpolation: str = "linear",
 ) -> np.ndarray:
     """Focus one measured plane-wave transmission onto a Cartesian grid."""
     if not 0 <= angle_index < acquisition.transmit_angles_rad.size:
@@ -174,6 +184,9 @@ def beamform_plane_wave(
         raise ValueError(f"method must be one of {sorted(methods)}")
     if analytic and method == "dmas":
         raise ValueError("analytic processing is not defined for signed real DMAS")
+    interpolation_order = _validate_delay_interpolation(
+        interpolation, acquisition.channel_data.shape[-1]
+    )
 
     elements = acquisition.element_x_m
     element_indices = np.arange(elements.size)[None, :]
@@ -196,11 +209,25 @@ def beamform_plane_wave(
         ) * acquisition.sampling_frequency_hz
         lower = np.floor(sample_positions).astype(np.int64)
         fraction = sample_positions - lower
-        valid = (lower >= 0) & (lower + 1 < angle_data.shape[-1])
-        safe_lower = np.clip(lower, 0, angle_data.shape[-1] - 2)
-        lower_values = angle_data[element_indices, safe_lower]
-        upper_values = angle_data[element_indices, safe_lower + 1]
-        delayed = lower_values * (1.0 - fraction) + upper_values * fraction
+        if interpolation_order == 1:
+            valid = (lower >= 0) & (lower + 1 < angle_data.shape[-1])
+            safe_lower = np.clip(lower, 0, angle_data.shape[-1] - 2)
+            lower_values = angle_data[element_indices, safe_lower]
+            upper_values = angle_data[element_indices, safe_lower + 1]
+            delayed = lower_values * (1.0 - fraction) + upper_values * fraction
+        else:
+            valid = (lower - 1 >= 0) & (lower + 2 < angle_data.shape[-1])
+            safe_lower = np.clip(lower, 1, angle_data.shape[-1] - 3)
+            p0 = angle_data[element_indices, safe_lower - 1]
+            p1 = angle_data[element_indices, safe_lower]
+            p2 = angle_data[element_indices, safe_lower + 1]
+            p3 = angle_data[element_indices, safe_lower + 2]
+            delayed = p1 + 0.5 * fraction * (
+                p2 - p0 + fraction * (
+                    2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3
+                    + fraction * (3.0 * (p1 - p2) + p3 - p0)
+                )
+            )
 
         half_aperture = np.maximum(z_axis_m[:, None] / (2.0 * f_number), 1e-9)
         normalized_offset = np.abs(elements[None, :] - x_position) / half_aperture
@@ -247,12 +274,14 @@ def plane_wave_delay_and_sum(
     mvdr_subarray_size: int = 16,
     diagonal_loading: float = 0.05,
     analytic: bool = False,
+    interpolation: str = "linear",
 ) -> PlaneWaveResult:
     """Reconstruct real RF data using coherent plane-wave compounding.
 
     The UFF channel array is stored as ``[transmit, element, sample]``. Linear
-    interpolation implements fractional delays; a cosine receive aperture is
-    varied with depth according to the requested F-number.
+    ``interpolation`` selects linear two-sample or Catmull-Rom cubic four-sample
+    fractional delays; a cosine receive aperture varies with depth according to
+    the requested F-number. Linear remains the reproducibility default.
 
     With ``analytic=True``, Hilbert transformation is performed on each RF
     channel before delay interpolation, and the compounded complex magnitude
@@ -261,6 +290,7 @@ def plane_wave_delay_and_sum(
     """
     if lateral_stride <= 0 or axial_stride <= 0 or f_number <= 0:
         raise ValueError("strides and f_number must be positive")
+    _validate_delay_interpolation(interpolation, acquisition.channel_data.shape[-1])
 
     x_axis = acquisition.x_axis_m[::lateral_stride]
     z_axis = acquisition.z_axis_m[::axial_stride]
@@ -281,6 +311,7 @@ def plane_wave_delay_and_sum(
             mvdr_subarray_size,
             diagonal_loading,
             analytic,
+            interpolation,
         )
 
     compounded /= angle_indices.size
