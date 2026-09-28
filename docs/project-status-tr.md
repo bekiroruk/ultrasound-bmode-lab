@@ -117,8 +117,16 @@ aynı blok örneklerini aldı; 1, 4, 8 ve 16 piksellik bloklar için 500'er tekr
 0,587'den 0,546'ya düştü. Yani sonuç bütün ölçütlerde iyileşme değil.
 Bloklar büyüyünce belirsizlik aralıkları genişledi; bunlar klinik güven aralıkları değildir.
 
-1. Sabit damar bölgesi analizini yeni enine kayıtlara taşımak; bölge seçimi ve blok başlangıç
-   konumuna duyarlılığı, bilinen kontrollü veride aralık kapsamasını değerlendirmek.
+v0.12'de [ROI/blok başlangıç duyarlılığı](../artifacts/roi_sensitivity/README.md) tamamlandı:
+PICMUS ve mevcut EPFL gönüllü 005 kaydı üzerinde merkez ±0,5 mm, yarıçap ±0,3 mm ve dört
+blok başlangıcı denendi. Her kayıt için 10 koşul ve koşul başına 500 tekrar kullanıldı.
+Dört karşılaştırmanın üçünde kübik–doğrusal gCNR farkının işareti bölge seçimiyle değişti.
+Her karşılaştırmanın dört blok başlangıcında da fark aralığı sıfırı içerdi. EPFL bölgesi
+önceden görülen tam-açılı doğrusal görüntüden elle sabitlendi; uzman etiketi veya bağımsız
+referans değildir. Daha çok koşul denemek daha çok hasta doğrulamak anlamına gelmez.
+
+1. Kontrollü, bilinen dağılımlı veride belirsizlik aralıklarının gerçek kapsamasını ölçmek;
+   bölge/blok başlangıcının birlikte değişmesini ve farklı uzman bölge seçimlerini değerlendirmek.
 2. Gerçek RF kare dizileriyle sürekli işleme, kare başına gecikme ve bellek kararlılığını
    ölçmek; mevcut açı gruplamasını disk/cihaz akışıyla çalışan bir tasarıma genişletmek.
 3. Uygun donanımda GPU veya C++ yolunu derleyip analitik/kübik yöntemle eşdeğerliğini ve

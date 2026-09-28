@@ -25,7 +25,8 @@ are present and verified.
 
 - Validate on more subjects, probes, frequencies, and vendors.
 - Extend the completed homogeneous sound-speed sweep with calibration and aberration experiments.
-- Calibrate the new conditional spatial-tile intervals and assess ROI/tile-origin sensitivity;
-  acquisition-level and between-subject uncertainty remain unmeasured.
+- Calibrate the conditional spatial-tile intervals; separate ROI/tile-origin sensitivity has
+  been measured on two acquisitions, but joint interactions, observer selection and
+  acquisition-level/between-subject uncertainty remain unmeasured.
 - Define clinical users, intended purpose, safety classification, benefit-risk criteria, and
   post-market controls before any device-oriented interpretation.

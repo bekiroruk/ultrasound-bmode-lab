@@ -99,6 +99,17 @@ not model spatial correlation or inter-subject uncertainty.
 
 ### Paired spatial ROI resampling (v0.11)
 
+v0.12 adds a validated `block_origin=(axial, lateral)` pixel offset, with each offset in
+`[0, block_size)`. Tiles are identified by coordinate pairs rather than flattened IDs,
+so shifted edge tiles with negative coordinates cannot collide. The zero-origin calculation
+retains historical ordering and reproduces v0.11 results. Shifting origin changes the tile
+partition, not the physical image grid, ROI mask or point estimates.
+
+The separate sensitivity CLI varies center, radius or origin one factor at a time on PICMUS
+and EPFL 005; it does not combine the ROI choices into a bootstrap distribution. EPFL lacks
+an independent reference and uses an explicitly recorded manual center from previously viewed
+full-angle linear imagery. No metric-based choice or default change follows from this study.
+
 One reference-selected circular target and a background annulus are frozen on the original
 stride-2 grid. Legacy and analytic envelopes are measured without registration. A regular
 tile partition is anchored at image (0,0); tiles intersecting either mask are drawn with

@@ -1,6 +1,6 @@
 # Software requirements specification
 
-Status: research baseline, revision 9 (paired spatial ROI uncertainty)
+Status: research baseline, revision 10 (ROI placement and tile-origin sensitivity)
 
 This specification defines verifiable behavior for the ultrasound B-mode laboratory. The
 software is educational/research software and is not intended for diagnosis, treatment,
@@ -56,6 +56,7 @@ channel files remain outside Git.
 | PERF-008 | Linear/cubic cost comparisons shall use matched settings and counterbalanced process order. | Eight fresh sequential workers pool ten warm calls per configuration; timing and RSS are separate, same-method repeat outputs agree, raw durations and preparation costs are retained. |
 | SAFE-001 | Every public-facing description shall identify the software as non-clinical. | README and lifecycle documentation contain the intended-use limitation. |
 | MET-009 | Analytic ROI comparisons shall use a single reference-selected ROI and paired spatial-tile resampling on identical physical grids. | 11/75-angle legacy/analytic-linear/analytic-cubic results retain 1/4/8/16-pixel block sensitivity, 500 accepted draws, paired deltas, support/rejection counts and conditional-uncertainty limitations; clipped or inadequately supported ROIs fail. |
+| MET-010 | ROI and tile-origin sensitivity shall separate placement effects from conditional resampling intervals without selecting an optimum. | Two measured human acquisitions retain ten fixed conditions each, explicit ROI provenance, paired linear/cubic 11/full metrics and hashes. Origin shifts preserve masks and point estimates; invalid origins fail; ROI ranges are not labeled confidence intervals. |
 
 ## Quality attributes
 

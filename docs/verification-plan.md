@@ -50,6 +50,12 @@ make a clinical claim, or process data in a care-delivery workflow.
 
 ## Reproducibility controls
 
+MET-010 is verified by `RoiSensitivityTests`, shifted-origin `SpatialRoiTests` and
+`artifacts/roi_sensitivity/metrics.json`. Origin validation rejects negative, fractional,
+boolean, oversized and malformed offsets. All four tested origins retain the same pixel
+counts, point estimates and paired identity. Report tests verify ten one-factor conditions,
+both reference-based/manual selection policies, exact geometry and EPFL settings hashes.
+
 MET-009 is verified by `SpatialRoiTests`, `AnalyticRoiReportTests` and
 `artifacts/analytic_roi/metrics.json`. Tests require deterministic paired identity,
 unchanged point estimates across block sizes, intact tile resampling, a wider contrast
@@ -113,3 +119,11 @@ The extended suite contains 93 tests. Measured ROI artifacts preserve the legacy
 record new analytic/paired-spatial results separately. Block sizes in physical units and
 each region's occupied tile counts are retained; the fixed-origin, fixed-ROI single-acquisition
 intervals must not be interpreted as clinical or population confidence intervals.
+
+## v0.12 local execution record
+
+The extended suite contains 99 tests. Twenty measured conditions use 500 accepted draws each;
+all have at least nine target tiles and no rejected resamples. PICMUS baseline paired
+contrast/CNR/gCNR point estimates and intervals match the v0.11 8×8 study exactly. Three of
+four gCNR point differences change sign across ROI choices; all 16 baseline/origin gCNR
+intervals contain zero. This is sensitivity evidence, not calibrated inference or equivalence.

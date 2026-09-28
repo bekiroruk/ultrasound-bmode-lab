@@ -46,10 +46,11 @@ def paired_spatial_bootstrap(
     samples: int = 500,
     seed: int = 7,
     comparisons: tuple[tuple[str, str], ...] = (),
+    block_origin: tuple[int, int] = (0, 0),
 ) -> dict:
     """Resample occupied tiles jointly across images; report first-minus-second deltas.
 
-    Tiles are anchored at image index (0,0). All masked pixels of a selected tile
+    Tiles are anchored at block_origin in (row, column) pixels. All masked pixels of a tile
     move together, including target/background pixels if both occur in that tile.
     Boundary tiles retain partial masks and replicate pixel counts may vary.
     These conditional percentile intervals have no established coverage guarantee.
@@ -57,6 +58,12 @@ def paired_spatial_bootstrap(
     _positive_integer(block_size, "block_size")
     _positive_integer(samples, "samples", 20)
     _positive_integer(seed, "seed", 0)
+    if not isinstance(block_origin, (tuple, list)) or len(block_origin) != 2:
+        raise ValueError("block_origin must contain axial and lateral integer offsets")
+    for offset in block_origin:
+        _positive_integer(offset, "block_origin", 0)
+        if offset >= block_size:
+            raise ValueError("block_origin offsets must be less than block_size")
     x, z = np.asarray(x_axis_m), np.asarray(z_axis_m)
     for axis in (x, z):
         if (axis.ndim != 1 or axis.size < 2 or not np.isfinite(axis).all()
@@ -89,9 +96,10 @@ def paired_spatial_bootstrap(
     background &= ~circular_mask(x, z, roi.center_x_m, roi.center_z_m, roi.radius_m + 1e-3)
     union = target | background
     rows, columns = np.nonzero(union)
-    tile_ids = (rows // block_size) * ((x.size + block_size - 1) // block_size)
-    tile_ids += columns // block_size
-    _, labels = np.unique(tile_ids, return_inverse=True)
+    # Coordinate pairs avoid collisions when shifted edge tiles have negative indices.
+    tiles = np.column_stack(((rows - block_origin[0]) // block_size,
+                             (columns - block_origin[1]) // block_size))
+    _, labels = np.unique(tiles, axis=0, return_inverse=True)
     is_target = target[union]
     target_blocks = np.unique(labels[is_target]).size
     background_blocks = np.unique(labels[~is_target]).size
@@ -135,7 +143,8 @@ def paired_spatial_bootstrap(
         "block_size_mm": [float(block_size * np.mean(np.diff(z)) * 1e3),
                           float(block_size * np.mean(np.diff(x)) * 1e3)],
         "grid_uniformity_rtol": 1e-4,
-        "grid_anchor_pixels": [0, 0], "seed": int(seed), "samples": int(samples),
+        "grid_anchor_pixels": [int(value) for value in block_origin],
+        "seed": int(seed), "samples": int(samples),
         "occupied_blocks": block_count, "target_blocks": int(target_blocks),
         "background_blocks": int(background_blocks),
         "target_pixels": int(is_target.sum()), "background_pixels": int((~is_target).sum()),

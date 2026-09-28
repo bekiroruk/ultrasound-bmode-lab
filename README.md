@@ -51,10 +51,40 @@ without changing its numerical result.
 | Analytic phantom median lateral FWHM, 11 angles | **0.652 mm** (legacy: 0.599 mm; wider) |
 | Analytic phantom median axial FWHM, 11 angles | **0.577 mm** (legacy: 0.679 mm; narrower) |
 | Exploratory analytic lateral FWHM, F/0.8 | **0.572 mm** — 11 angles; defaults unchanged |
-| Automated tests | **93 passing** with local datasets and acceleration extra |
+| Automated tests | **99 passing** with local datasets and acceleration extra |
 
 Runtimes are hardware-dependent single-host measurements. Image metrics compare normalized
 display images and are research evidence, not clinical-performance claims.
+
+## v0.12: ROI placement and block-origin sensitivity
+
+The [ROI sensitivity study](artifacts/roi_sensitivity/README.md) extends the spatial analysis
+to PICMUS cross-section and the already-inspected EPFL volunteer 005 acquisition. Each uses
+11/full angles, fixed F/1.7, analytic linear/cubic reconstruction and paired 8×8-pixel tiles.
+Ten conditions per acquisition separately vary the target center (±0.5 mm), radius (±0.3 mm)
+or tile origin (four offsets). Each condition uses 500 accepted resamples; no optimum is chosen.
+
+| Acquisition | Angles | Baseline cubic − linear gCNR | Range across seven ROI choices |
+|---|---:|---:|---:|
+| PICMUS cross | 11 | +0.0085 | -0.0006 to +0.0121 |
+| PICMUS cross | 75 | -0.0019 | -0.0048 to +0.0019 |
+| EPFL volunteer 005 | 11 | -0.0047 | -0.0131 to -0.0028 |
+| EPFL volunteer 005 | 87 | -0.0056 | -0.0098 to +0.0034 |
+
+Three of four comparisons change point-estimate sign under ROI perturbations. All four
+tile-origin intervals include zero for each comparison. This does not establish equivalence;
+it shows that the small gCNR differences do not support a robust superiority claim here.
+Linear remains the default. PICMUS baseline metrics and intervals reproduce v0.11 exactly.
+
+The EPFL ROI was manually frozen from a previously viewed full-angle linear image at
+x=6 mm, z=17 mm, radius=2.2 mm, before evaluating these conditions. It is not independent
+ground truth or an expert segmentation. ROI ranges are **not confidence intervals**;
+selection bias, uncalibrated coverage and joint ROI/origin interactions remain unresolved.
+Pixel-sized blocks differ in millimetres between acquisitions; results are not pooled.
+
+```bash
+ultrasound-roi-sensitivity --samples 500 --seed 7
+```
 
 ## v0.11: fixed carotid ROI and spatial uncertainty
 
@@ -677,6 +707,7 @@ ultrasound-interpolation-study --output-dir artifacts/interpolation_study
 ultrasound-interpolation-transfer --output-dir artifacts/interpolation_transfer
 ultrasound-interpolation-profile --output-dir artifacts/interpolation_profile --repeats 5 --threads 8
 ultrasound-analytic-roi --output-dir artifacts/analytic_roi --samples 500 --seed 7
+ultrasound-roi-sensitivity --output-dir artifacts/roi_sensitivity --samples 500 --seed 7
 
 python -m unittest discover -s tests -v
 ```
@@ -768,8 +799,8 @@ ultrasound-bmode-lab/
 - Analytic phantom contrast and axial FWHM improved, but lateral FWHM widened in this study.
 - Analytic validation covers four PICMUS acquisitions, two EPFL volunteers and one Alpinion
   phantom; none of these results provides population-level or clinical validation.
-- Analytic fixed-ROI spatial resampling covers one cross-section; calibrated interval coverage,
-  ROI/origin sensitivity, additional acquisitions and sparse-angle tuning remain to be done.
+- Analytic ROI sensitivity now covers PICMUS cross and EPFL volunteer 005; calibrated interval
+  coverage, joint ROI/origin effects, further acquisitions and sparse-angle tuning remain open.
   Frozen F/0.8 transfer reduced PICMUS reference similarity, so it is not
   promoted as a general default or clinically better aperture.
 - Runtime/memory profiles cover one host at F/1.5, F/0.8 and F/1.7. Angle batching reduces temporary

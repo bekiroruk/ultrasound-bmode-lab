@@ -103,6 +103,32 @@ class SpatialRoiTests(unittest.TestCase):
             z.astype(np.float32).astype(float), roi, samples=20)
         self.assertEqual(result["samples"], 20)
 
+    def test_shifted_origins_preserve_points_pixels_and_paired_identity(self):
+        image, x, z, roi = fixture()
+        baseline = paired_spatial_bootstrap({"a": image, "b": image}, x, z, roi,
+                                           block_size=8, samples=20,
+                                           comparisons=(("a", "b"),))
+        for origin in ((0, 0), (0, 4), (4, 0), (4, 4)):
+            actual = paired_spatial_bootstrap({"a": image, "b": image}, x, z, roi,
+                                             block_size=8, block_origin=origin, samples=20,
+                                             comparisons=(("a", "b"),))
+            if origin == (0, 0):
+                self.assertEqual(actual, baseline)
+            self.assertEqual(actual["target_pixels"], baseline["target_pixels"])
+            self.assertEqual(actual["background_pixels"], baseline["background_pixels"])
+            self.assertEqual(actual["grid_anchor_pixels"], list(origin))
+            for name, metric in actual["images"]["a"].items():
+                self.assertEqual(metric["estimate"], baseline["images"]["a"][name]["estimate"])
+                self.assertEqual(
+                    actual["paired_differences"][0]["metrics"][name]["percentile95"], [0, 0])
+
+    def test_invalid_origins_fail(self):
+        image, x, z, roi = fixture()
+        for origin in ((-1, 0), (8, 0), (0,), (True, 0), (0.5, 0), None):
+            with self.subTest(origin=origin), self.assertRaises(ValueError):
+                paired_spatial_bootstrap({"a": image}, x, z, roi,
+                                         block_size=8, block_origin=origin, samples=20)
+
     def test_report_roundtrip_retains_all_block_sizes_and_paired_differences(self):
         image, x, z, roi = fixture()
         studies = [paired_spatial_bootstrap({"a": image, "b": image}, x, z, roi,
