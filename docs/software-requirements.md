@@ -1,6 +1,6 @@
 # Software requirements specification
 
-Status: research baseline, revision 8 (interpolation transfer and matched performance)
+Status: research baseline, revision 9 (paired spatial ROI uncertainty)
 
 This specification defines verifiable behavior for the ultrasound B-mode laboratory. The
 software is educational/research software and is not intended for diagnosis, treatment,
@@ -55,6 +55,7 @@ channel files remain outside Git.
 | DATA-008 | Frozen interpolation transfer shall retain acquisition geometry and distinguish reference similarity from output change. | Five acquisitions at 11/full angles retain source/settings hashes, exact axes/angle order, null missing references, and cached/batched versus uncached/unbatched cubic parity. |
 | PERF-008 | Linear/cubic cost comparisons shall use matched settings and counterbalanced process order. | Eight fresh sequential workers pool ten warm calls per configuration; timing and RSS are separate, same-method repeat outputs agree, raw durations and preparation costs are retained. |
 | SAFE-001 | Every public-facing description shall identify the software as non-clinical. | README and lifecycle documentation contain the intended-use limitation. |
+| MET-009 | Analytic ROI comparisons shall use a single reference-selected ROI and paired spatial-tile resampling on identical physical grids. | 11/75-angle legacy/analytic-linear/analytic-cubic results retain 1/4/8/16-pixel block sensitivity, 500 accepted draws, paired deltas, support/rejection counts and conditional-uncertainty limitations; clipped or inadequately supported ROIs fail. |
 
 ## Quality attributes
 

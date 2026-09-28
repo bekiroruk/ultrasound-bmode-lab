@@ -25,6 +25,7 @@ are present and verified.
 
 - Validate on more subjects, probes, frequencies, and vendors.
 - Extend the completed homogeneous sound-speed sweep with calibration and aberration experiments.
-- Replace pixel bootstrap with spatial/block or acquisition-level uncertainty where appropriate.
+- Calibrate the new conditional spatial-tile intervals and assess ROI/tile-origin sensitivity;
+  acquisition-level and between-subject uncertainty remain unmeasured.
 - Define clinical users, intended purpose, safety classification, benefit-risk criteria, and
   post-market controls before any device-oriented interpretation.

@@ -109,8 +109,16 @@ kişiler arası belirsizliği temsil etmez.
 
 ## Sonraki sınırlı iş paketleri
 
-1. Analitik yöntem için karotid ilgi bölgesi değerlendirmesini güncellemek; uzamsal ilişkiyi
-   dikkate alan belirsizlik hesabını ve yeni kayıtlarla tekrarı incelemek.
+v0.11'de ilk paketin tek kayıt üzerindeki kısmı tamamlandı:
+[analitik damar bölgesi raporu](../artifacts/analytic_roi/README.md). Aynı damar bölgesinde
+eski, analitik-doğrusal ve analitik-kübik yöntemler 11/75 açıyla karşılaştırıldı. Her yöntem
+aynı blok örneklerini aldı; 1, 4, 8 ve 16 piksellik bloklar için 500'er tekrar yapıldı.
+75 açıda kontrast -15,67 dB'den analitik-doğrusal hesapta -19,00 dB'ye değişirken gCNR
+0,587'den 0,546'ya düştü. Yani sonuç bütün ölçütlerde iyileşme değil.
+Bloklar büyüyünce belirsizlik aralıkları genişledi; bunlar klinik güven aralıkları değildir.
+
+1. Sabit damar bölgesi analizini yeni enine kayıtlara taşımak; bölge seçimi ve blok başlangıç
+   konumuna duyarlılığı, bilinen kontrollü veride aralık kapsamasını değerlendirmek.
 2. Gerçek RF kare dizileriyle sürekli işleme, kare başına gecikme ve bellek kararlılığını
    ölçmek; mevcut açı gruplamasını disk/cihaz akışıyla çalışan bir tasarıma genişletmek.
 3. Uygun donanımda GPU veya C++ yolunu derleyip analitik/kübik yöntemle eşdeğerliğini ve

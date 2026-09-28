@@ -51,10 +51,43 @@ without changing its numerical result.
 | Analytic phantom median lateral FWHM, 11 angles | **0.652 mm** (legacy: 0.599 mm; wider) |
 | Analytic phantom median axial FWHM, 11 angles | **0.577 mm** (legacy: 0.679 mm; narrower) |
 | Exploratory analytic lateral FWHM, F/0.8 | **0.572 mm** — 11 angles; defaults unchanged |
-| Automated tests | **84 passing** with local datasets and acceleration extra |
+| Automated tests | **93 passing** with local datasets and acceleration extra |
 
 Runtimes are hardware-dependent single-host measurements. Image metrics compare normalized
 display images and are research evidence, not clinical-performance claims.
+
+## v0.11: fixed carotid ROI and spatial uncertainty
+
+The [analytic ROI study](artifacts/analytic_roi/README.md) compares legacy, analytic-linear
+and analytic-cubic reconstruction at 11/75 angles on one measured PICMUS human cross-section.
+The target and background annulus are selected once from the embedded reference and held
+fixed. Images share metadata coordinates: no registration or per-method ROI selection.
+
+| 75-angle fixed-ROI result | Legacy | Analytic linear | Analytic cubic |
+|---|---:|---:|---:|
+| Lumen/background contrast [dB] | -15.67 | -19.00 | -19.81 |
+| CNR | 0.587 | 0.558 | 0.562 |
+| gCNR | 0.587 | 0.546 | 0.544 |
+
+Contrast improves while CNR/gCNR do not: a darker lumen does not establish universal quality
+improvement. Cubic-minus-linear gCNR is -0.0019 at 75 angles; its paired 8×8-block percentile
+range is [-0.0118, +0.0088], spanning zero.
+
+Spatial tiles are sampled jointly across methods, using 500 accepted draws for each of
+1×1, 4×4, 8×8 and 16×16 pixels. For analytic-linear 75 angles, the gCNR percentile range widens
+from [0.514, 0.583] at 1×1 to [0.398, 0.688] at 8×8. These are exploratory, conditional
+resampling ranges—not calibrated 95% confidence intervals or patient-level uncertainty.
+Within-tile dependence is retained, between-tile dependence is not; block size/origin,
+heterogeneous background tissue and reference-selected ROI remain limitations.
+
+The report retains all three metrics, paired differences, block sizes in millimetres, support
+counts, rejected draws, source SHA-256 and matched ROI overlays. Legacy ROI artifacts remain
+unchanged. Tests cover paired identity, exact point estimates, intact tile resampling,
+determinism, correlated fixtures and invalid geometry.
+
+```bash
+ultrasound-analytic-roi --samples 500 --seed 7
+```
 
 ## v0.10: human-data transfer, matched cost and numerical robustness
 
@@ -643,6 +676,7 @@ ultrasound-cache-profile --output-dir artifacts/cache_profile --repeats 5
 ultrasound-interpolation-study --output-dir artifacts/interpolation_study
 ultrasound-interpolation-transfer --output-dir artifacts/interpolation_transfer
 ultrasound-interpolation-profile --output-dir artifacts/interpolation_profile --repeats 5 --threads 8
+ultrasound-analytic-roi --output-dir artifacts/analytic_roi --samples 500 --seed 7
 
 python -m unittest discover -s tests -v
 ```
@@ -734,14 +768,16 @@ ultrasound-bmode-lab/
 - Analytic phantom contrast and axial FWHM improved, but lateral FWHM widened in this study.
 - Analytic validation covers four PICMUS acquisitions, two EPFL volunteers and one Alpinion
   phantom; none of these results provides population-level or clinical validation.
-- Analytic ROI uncertainty, spatially aware confidence intervals and sparse-angle tuning
-  remain to be done. Frozen F/0.8 transfer reduced PICMUS reference similarity, so it is not
+- Analytic fixed-ROI spatial resampling covers one cross-section; calibrated interval coverage,
+  ROI/origin sensitivity, additional acquisitions and sparse-angle tuning remain to be done.
+  Frozen F/0.8 transfer reduced PICMUS reference similarity, so it is not
   promoted as a general default or clinically better aperture.
 - Runtime/memory profiles cover one host at F/1.5, F/0.8 and F/1.7. Angle batching reduces temporary
   working buffers, but the complete raw acquisition is still resident; true streaming,
   deployment hardware and sustained frame-sequence benchmarks remain to be done.
 - Adaptive methods need parameter studies on independent acquisitions.
-- Bootstrap intervals ignore spatial correlation and between-subject variability.
+- Legacy pixel-bootstrap intervals ignore spatial correlation. The new tile study retains only
+  within-block dependence and does not measure between-subject variability.
 - CUDA and C++ runtimes require corresponding local hardware/build tools and were unavailable on
   the measured host.
 

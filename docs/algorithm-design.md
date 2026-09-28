@@ -97,6 +97,23 @@ not model spatial correlation or inter-subject uncertainty.
 
 ## Key design decisions and limitations
 
+### Paired spatial ROI resampling (v0.11)
+
+One reference-selected circular target and a background annulus are frozen on the original
+stride-2 grid. Legacy and analytic envelopes are measured without registration. A regular
+tile partition is anchored at image (0,0); tiles intersecting either mask are drawn with
+replacement. Every image receives the same tile multiplicities, so method differences are
+paired. Boundary tiles preserve partial masks and target/background sample sizes may vary.
+Draws without two pixels in either region are rejected and counted. At least four occupied
+tiles per region are required as a guard, not a proof of adequate effective sample size.
+
+The 1×1 baseline and 4×4/8×8/16×16 tiles are predeclared sensitivity settings, not estimated
+correlation lengths. The output is a conditional percentile resampling range with uncalibrated
+coverage. It omits cross-tile dependence, ROI selection, grid-origin sensitivity, tissue
+nonstationarity and subject variability. General motivation:
+[dependent-data bootstrap lecture](https://www.stat.cmu.edu/~cshalizi/dst/20/lectures/16/lecture-16.html).
+This source does not validate coverage for the project's masked nonlinear image metrics.
+
 ### Cubic delay interpolation and sound-speed sensitivity (v0.9)
 
 Linear fractional delay uses samples at `floor(s)` and `floor(s)+1`. The optional cubic path

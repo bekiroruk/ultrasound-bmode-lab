@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ultrasound-bmode-lab"
-version = "0.10.0"
+version = "0.11.0"
 description = "Measured-RF ultrasound beamforming, phantom validation, quality metrics, and acceleration."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -43,6 +43,7 @@ ultrasound-cache-profile = "ultrasound_bmode.cache_profile_cli:main"
 ultrasound-interpolation-study = "ultrasound_bmode.interpolation_study_cli:main"
 ultrasound-interpolation-transfer = "ultrasound_bmode.interpolation_transfer_cli:main"
 ultrasound-interpolation-profile = "ultrasound_bmode.interpolation_profile_cli:main"
+ultrasound-analytic-roi = "ultrasound_bmode.analytic_roi_cli:main"
 
 
 [tool.setuptools.packages.find]

@@ -50,6 +50,14 @@ make a clinical claim, or process data in a care-delivery workflow.
 
 ## Reproducibility controls
 
+MET-009 is verified by `SpatialRoiTests`, `AnalyticRoiReportTests` and
+`artifacts/analytic_roi/metrics.json`. Tests require deterministic paired identity,
+unchanged point estimates across block sizes, intact tile resampling, a wider contrast
+range on a tile-correlated fixture, finite nonnegative envelopes and valid ROI geometry.
+The measured study uses one frozen reference ROI, six reconstructions, four block sizes
+and 500 accepted paired draws per size. The 16×16 case rejected four unsupported draws;
+this conditioning is recorded rather than hidden. No coverage calibration is claimed.
+
 - Simulation and electronic noise use explicit, independently derived seeds.
 - Calculations use SI units; display conversions occur only at visualization boundaries.
 - Default parameters are centralized in the immutable `ImagingConfig` object.
@@ -98,3 +106,10 @@ make a clinical claim, or process data in a care-delivery workflow.
   threads; all four same-method repeat comparisons passed.
 - Inspect the JSON artifacts for host, dependencies, checksums, raw repeats and limitations.
   Clinical validation, sustained frame streaming and device-hardware deployment remain excluded.
+
+## v0.11 local execution record
+
+The extended suite contains 93 tests. Measured ROI artifacts preserve the legacy study and
+record new analytic/paired-spatial results separately. Block sizes in physical units and
+each region's occupied tile counts are retained; the fixed-origin, fixed-ROI single-acquisition
+intervals must not be interpreted as clinical or population confidence intervals.
