@@ -24,7 +24,7 @@ are present and verified.
 ## Open risk work
 
 - Validate on more subjects, probes, frequencies, and vendors.
-- Add sound-speed sensitivity and aberration experiments.
+- Extend the completed homogeneous sound-speed sweep with calibration and aberration experiments.
 - Replace pixel bootstrap with spatial/block or acquisition-level uncertainty where appropriate.
 - Define clinical users, intended purpose, safety classification, benefit-risk criteria, and
   post-market controls before any device-oriented interpretation.

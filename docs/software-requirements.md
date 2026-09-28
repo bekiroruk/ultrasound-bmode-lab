@@ -1,6 +1,6 @@
 # Software requirements specification
 
-Status: research baseline, revision 7 (delay interpolation and sound-speed sensitivity)
+Status: research baseline, revision 8 (interpolation transfer and matched performance)
 
 This specification defines verifiable behavior for the ultrasound B-mode laboratory. The
 software is educational/research software and is not intended for diagnosis, treatment,
@@ -52,6 +52,8 @@ channel files remain outside Git.
 | PERF-007 | Cache profiling shall report preparation cost separately from repeated reconstruction and retain the memory tradeoff. | Fresh-process cached/uncached pairs report raw repeats, cache bytes, preparation time, sampled RSS and full-array parity. |
 | ALG-017 | Optional four-sample cubic fractional-delay interpolation shall be numerically consistent across NumPy and Numba without changing the linear default. | Cubic reduces error on an analytical sinusoid; real/analytic backend outputs agree; invalid method/support is rejected. |
 | MET-008 | Interpolation and assumed sound-speed sensitivity shall be reported on both measured PICMUS phantoms without selecting a setting from approximate target coordinates. | Linear/cubic 11/full-angle metrics and a fixed 1460–1620 m/s sweep retain physical metrics, embedded-reference similarity and limitations. |
+| DATA-008 | Frozen interpolation transfer shall retain acquisition geometry and distinguish reference similarity from output change. | Five acquisitions at 11/full angles retain source/settings hashes, exact axes/angle order, null missing references, and cached/batched versus uncached/unbatched cubic parity. |
+| PERF-008 | Linear/cubic cost comparisons shall use matched settings and counterbalanced process order. | Eight fresh sequential workers pool ten warm calls per configuration; timing and RSS are separate, same-method repeat outputs agree, raw durations and preparation costs are retained. |
 | SAFE-001 | Every public-facing description shall identify the software as non-clinical. | README and lifecycle documentation contain the intended-use limitation. |
 
 ## Quality attributes
@@ -62,6 +64,13 @@ channel files remain outside Git.
 - Traceability: requirements map to tests and generated evidence in the verification plan.
 - Portability: the baseline supports Python 3.10 and 3.12; Numba is an optional extra.
 - Inspectability: no trained black-box model is used in the image-formation path.
+
+## Cubic numerical acceptance
+
+Cubic numerical tests cover exact low-order polynomials, the full four-sample support boundary,
+large-offset float32 inputs, invalid-channel normalization, and float32/float64 multichannel
+real/analytic backend parity. RF acceptance is `rtol=1e-5, atol=1e-7`; displayed B-mode
+acceptance is `rtol=0, atol=1e-4` dB. Cache preparation rejects unsupported RF dtypes.
 
 ## Explicit exclusions
 

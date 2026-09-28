@@ -53,12 +53,16 @@ def prepare_analytic_channel_cache(
     """Precompute channel quadrature in bounded batches for repeated reconstructions.
 
     The cache is valid only for the exact ``channel_data`` array object used to
-    construct it. Treat that array as immutable for the cache lifetime.
+    construct it. Treat that array as immutable for the cache lifetime. Input
+    channels must be float32 or float64, matching the compiled backend's support.
     """
     batch_size = _positive_integer(batch_size, "batch_size")
     source = acquisition.channel_data
-    if source.ndim != 3 or not np.issubdtype(source.dtype, np.floating):
-        raise ValueError("analytic cache requires a real floating [angle, element, sample] array")
+    if source.ndim != 3 or source.dtype not in (np.dtype("float32"), np.dtype("float64")):
+        raise ValueError(
+            "analytic cache requires a real floating [angle, element, sample] array "
+            "with float32 or float64 dtype"
+        )
     quadrature = np.empty_like(source)
     start_time = time.perf_counter()
     for start in range(0, source.shape[0], batch_size):

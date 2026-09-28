@@ -72,6 +72,7 @@ def profile_call(function, repeats=3, sample_interval_s=0.002):
 def worker(
     dataset, backend, analytic, count, repeats, output, batch_size=None, f_number=1.5,
     use_analytic_cache=False, cache_batch_size=8,
+    interpolation="linear",
 ):
     if backend == "numpy" and batch_size is not None:
         raise ValueError("angle batching is available only for the Numba backend")
@@ -83,12 +84,15 @@ def worker(
         prepare_analytic_channel_cache(acquisition, cache_batch_size)
         if use_analytic_cache else None
     )
-    kwargs = {"angle_count": count, "analytic": analytic, "f_number": f_number}
+    kwargs = {"angle_count": count, "analytic": analytic, "f_number": f_number,
+              "interpolation": interpolation}
     if backend == "numba":
         kwargs["angle_batch_size"] = batch_size
         kwargs["analytic_cache"] = cache
     report, result = profile_call(lambda: reconstruct(acquisition, **kwargs), repeats)
-    np.savez_compressed(output, rf=result.rf, bmode=result.bmode_db)
+    np.savez_compressed(output, rf=result.rf, bmode=result.bmode_db,
+                        x_axis_m=result.x_axis_m, z_axis_m=result.z_axis_m,
+                        angle_indices=result.angle_indices)
     from numba import get_num_threads
 
     report.update({
@@ -97,6 +101,7 @@ def worker(
         "rf_dtype": str(result.rf.dtype), "numba_threads": get_num_threads(),
         "input_channel_mib": acquisition.channel_data.nbytes / 2**20,
         "angle_batch_size": batch_size, "f_number": f_number,
+        "interpolation": interpolation,
         "analytic_cache": use_analytic_cache,
         "analytic_cache_mib": cache.size_mib if cache is not None else 0.0,
         "analytic_cache_preparation_seconds": (
@@ -217,13 +222,15 @@ def main():
     parser.add_argument("--f-number", type=float, default=1.5, help=argparse.SUPPRESS)
     parser.add_argument("--use-analytic-cache", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--cache-batch-size", type=int, default=8, help=argparse.SUPPRESS)
+    parser.add_argument("--interpolation", choices=["linear", "cubic"], default="linear",
+                        help=argparse.SUPPRESS)
     args = parser.parse_args()
     if args.worker:
         if args.result_path is None:
             parser.error("--worker requires --result-path")
         print(json.dumps(worker(args.dataset, args.backend, args.analytic, args.count,
                                 args.repeats, args.result_path, args.angle_batch_size, args.f_number,
-                                args.use_analytic_cache, args.cache_batch_size)))
+                                args.use_analytic_cache, args.cache_batch_size, args.interpolation)))
     else:
         run_runtime_profile(args.dataset, args.output_dir, args.repeats)
 

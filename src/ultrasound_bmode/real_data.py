@@ -218,10 +218,14 @@ def beamform_plane_wave(
         else:
             valid = (lower - 1 >= 0) & (lower + 2 < angle_data.shape[-1])
             safe_lower = np.clip(lower, 1, angle_data.shape[-1] - 3)
-            p0 = angle_data[element_indices, safe_lower - 1]
-            p1 = angle_data[element_indices, safe_lower]
-            p2 = angle_data[element_indices, safe_lower + 1]
-            p3 = angle_data[element_indices, safe_lower + 2]
+            # Form the polynomial coefficients in the accumulator precision.
+            # Float32/complex64 coefficient cancellation otherwise loses small
+            # differences before multiplication by the float64 delay fraction.
+            coefficient_dtype = np.result_type(angle_data.dtype, np.float64)
+            p0 = angle_data[element_indices, safe_lower - 1].astype(coefficient_dtype)
+            p1 = angle_data[element_indices, safe_lower].astype(coefficient_dtype)
+            p2 = angle_data[element_indices, safe_lower + 1].astype(coefficient_dtype)
+            p3 = angle_data[element_indices, safe_lower + 2].astype(coefficient_dtype)
             delayed = p1 + 0.5 * fraction * (
                 p2 - p0 + fraction * (
                     2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3
@@ -278,7 +282,7 @@ def plane_wave_delay_and_sum(
 ) -> PlaneWaveResult:
     """Reconstruct real RF data using coherent plane-wave compounding.
 
-    The UFF channel array is stored as ``[transmit, element, sample]``. Linear
+    The UFF channel array is stored as ``[transmit, element, sample]``.
     ``interpolation`` selects linear two-sample or Catmull-Rom cubic four-sample
     fractional delays; a cosine receive aperture varies with depth according to
     the requested F-number. Linear remains the reproducibility default.

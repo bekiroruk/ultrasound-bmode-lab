@@ -105,6 +105,11 @@ sample farther on both sides, it rejects positions for which `floor(s)-1` or `fl
 outside the channel. The same polynomial is applied separately to real and quadrature channels
 in the Numba analytic path. Linear remains the default, and CUDA/native paths are unchanged.
 
+The full-stencil policy accepts sample positions in `[1, n-2)`, including rejection of
+the integer position `n-2`. Catmull–Rom reproduces constant, linear and quadratic signals,
+not arbitrary cubic polynomials. NumPy promotes the gathered samples to float64/complex128
+before forming coefficients to preserve small variations on large float32 offsets.
+
 A controlled bandlimited sinusoid verifies interpolation error independently of image metrics.
 The measured study then fixes F/1.7, stride 2, analytic processing and angle batches of 8 while
 comparing linear/cubic reconstruction at 11 and all 75 angles on the two PICMUS phantoms. A
@@ -112,10 +117,17 @@ separate cubic 11-angle sweep changes only assumed homogeneous sound speed from 
 It records cyst, point-target and same-acquisition embedded-reference metrics without optimizing
 on them. The embedded image is an algorithmic reference, nominal target coordinates are
 approximate, and the sweep does not estimate tissue-specific sound speed.
+Fixed ROI/reference coordinates confound geometry shifts with defocus as sound speed changes.
+
+The v0.10 transfer study freezes these parameters on four human acquisitions and one external
+phantom, comparing 11/full angles. Missing references remain null. Linear/cubic similarity is
+explicitly change, not quality. Separate fresh-process performance trials reverse process order,
+compare repeat outputs only within each method, and keep memory sampling separate from timing.
 
 ### Reusable analytic-channel cache (v0.8)
 
-The opt-in cache stores only the Hilbert quadrature component in the acquisition's real dtype;
+The opt-in cache supports float32/float64 and stores only the Hilbert quadrature component in
+the acquisition's real dtype;
 the original channel tensor remains the real component. Preparation iterates over bounded angle
 batches, but the completed cache is one full additional channel-sized tensor. Reconstruction
 still makes contiguous working copies for the selected angle batch, so the cache complements
@@ -174,7 +186,8 @@ host/dependency information, data hash and full-array 11-angle backend agreement
 
 - Constant 1,540 m/s sound speed can cause target-position and focus errors in heterogeneous
   tissue.
-- Linear delay interpolation is transparent but less accurate than higher-order interpolation.
+- Cubic delay interpolation reduces error on the controlled sinusoid, but does not improve every
+  measured image metric; linear remains the default.
 - The CPU reference prioritizes clarity; Numba provides performance without changing equations.
 - The current MVDR covariance estimate uses spatial smoothing and diagonal loading; it is not a
   tuned clinical implementation.

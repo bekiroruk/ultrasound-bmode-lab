@@ -51,10 +51,55 @@ without changing its numerical result.
 | Analytic phantom median lateral FWHM, 11 angles | **0.652 mm** (legacy: 0.599 mm; wider) |
 | Analytic phantom median axial FWHM, 11 angles | **0.577 mm** (legacy: 0.679 mm; narrower) |
 | Exploratory analytic lateral FWHM, F/0.8 | **0.572 mm** — 11 angles; defaults unchanged |
-| Automated tests | **73 passing** with local datasets and acceleration extra |
+| Automated tests | **84 passing** with local datasets and acceleration extra |
 
 Runtimes are hardware-dependent single-host measurements. Image metrics compare normalized
 display images and are research evidence, not clinical-performance claims.
+
+## v0.10: human-data transfer, matched cost and numerical robustness
+
+[Türkçe proje özeti ve sonraki adımlar](docs/project-status-tr.md)
+
+Cubic interpolation was evaluated with frozen F/1.7 and acquisition metadata sound speed on
+two PICMUS human views, two EPFL volunteers and one Alpinion physical phantom, each at 11 and
+all acquired angles. All **10 cached/batched versus uncached/unbatched cubic comparisons**
+passed full-array RF/B-mode tolerances on identical coordinates and angle selections.
+
+| Human acquisition | Angles | Embedded-reference SSIM: linear → cubic |
+|---|---:|---:|
+| PICMUS cross | 11 | 0.4561 → 0.4583 |
+| PICMUS cross | 75 | 0.7152 → 0.7061 |
+| PICMUS longitudinal | 11 | 0.5541 → 0.5543 |
+| PICMUS longitudinal | 75 | 0.7478 → 0.7422 |
+
+The small phantom gains do **not** imply a universal gain in human reference similarity.
+Linear remains the default. Embedded UFF images are same-acquisition algorithmic references,
+not anatomical ground truth. EPFL/Alpinion reference scores remain unavailable; their
+linear/cubic change maps are not quality scores. These previously inspected acquisitions
+are not a new blinded test set. See the [transfer report](artifacts/interpolation_transfer/README.md).
+
+The [matched performance study](artifacts/interpolation_profile/README.md) ran eight fresh
+processes in forward/reverse order, pooling ten warm calls per configuration. Both methods
+used cached analytic channels, batch 8, stride 2, F/1.7 and eight Numba threads.
+
+| Angles | Linear median | Cubic median | Cubic time increase | Sampled peak RSS: linear / cubic |
+|---:|---:|---:|---:|---:|
+| 11 | 0.162 s | 0.223 s | +37.2% | 321.6 / 321.0 MiB |
+| 75 | 1.104 s | 1.403 s | +27.1% | 321.3 / 321.4 MiB |
+
+These single-host reconstruction timings exclude loading, cache preparation and warmup.
+RSS was sampled in separate passes; sub-MiB differences are not evidence of a memory gain.
+They do not establish acquisition-to-display latency or sustained real-time performance.
+
+A numerical audit also fixed float32 cancellation in NumPy's cubic coefficient calculation:
+gathered samples are promoted before arithmetic. Tests cover large-offset signals, exact
+polynomials, full-stencil boundaries, invalid-channel normalization and uneven angle batches.
+Analytic cache preparation explicitly accepts only float32/float64 RF inputs.
+
+```bash
+ultrasound-interpolation-transfer
+ultrasound-interpolation-profile --repeats 5 --threads 8
+```
 
 ## v0.9: cubic delay interpolation and sound-speed sensitivity
 
@@ -90,6 +135,8 @@ combined cyst and embedded-reference evidence: shallow/deep gCNR 0.9396/0.9275 a
 contrast SSIM 0.7049/0.8524. Other speeds sharply reduced reference SSIM and deep-cyst gCNR.
 Nominal point coordinates are approximate—the falling position RMSE at higher speeds is not a
 calibration result—so no sound speed was tuned or selected and the metadata value remains in use.
+Fixed ROIs and reference coordinates also mix geometric displacement with defocus; this sweep
+does not isolate tissue sound speed.
 
 <p align="center">
   <img src="artifacts/interpolation_study/sound_speed_sensitivity.png"
@@ -592,6 +639,10 @@ ultrasound-aperture-study --output-dir artifacts/aperture_study
 ultrasound-profile --output-dir artifacts/runtime_profile --repeats 3
 ultrasound-aperture-transfer --output-dir artifacts/aperture_transfer
 ultrasound-batch-profile --output-dir artifacts/batch_profile --repeats 3
+ultrasound-cache-profile --output-dir artifacts/cache_profile --repeats 5
+ultrasound-interpolation-study --output-dir artifacts/interpolation_study
+ultrasound-interpolation-transfer --output-dir artifacts/interpolation_transfer
+ultrasound-interpolation-profile --output-dir artifacts/interpolation_profile --repeats 5 --threads 8
 
 python -m unittest discover -s tests -v
 ```
@@ -679,14 +730,14 @@ ultrasound-bmode-lab/
 - The UFF image is an algorithmic reference, not anatomical or diagnostic ground truth.
 - EPFL/Alpinion sparse-angle metrics use same-acquisition full-angle CPWC references.
 - A homogeneous sound-speed assumption and simplified receive modelling remain; cubic delay
-  interpolation is opt-in and was evaluated only on the available physical phantoms.
+  interpolation is opt-in, with phantom and human transfer evidence but no universal quality gain.
 - Analytic phantom contrast and axial FWHM improved, but lateral FWHM widened in this study.
 - Analytic validation covers four PICMUS acquisitions, two EPFL volunteers and one Alpinion
   phantom; none of these results provides population-level or clinical validation.
 - Analytic ROI uncertainty, spatially aware confidence intervals and sparse-angle tuning
   remain to be done. Frozen F/0.8 transfer reduced PICMUS reference similarity, so it is not
   promoted as a general default or clinically better aperture.
-- Runtime/memory profiles cover one host at F/1.5 and F/0.8. Angle batching reduces temporary
+- Runtime/memory profiles cover one host at F/1.5, F/0.8 and F/1.7. Angle batching reduces temporary
   working buffers, but the complete raw acquisition is still resident; true streaming,
   deployment hardware and sustained frame-sequence benchmarks remain to be done.
 - Adaptive methods need parameter studies on independent acquisitions.

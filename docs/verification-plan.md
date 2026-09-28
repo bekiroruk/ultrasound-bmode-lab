@@ -12,25 +12,21 @@ make a clinical claim, or process data in a care-delivery workflow.
 
 | ID | Software requirement | Verification evidence | Acceptance criterion |
 |---|---|---|---|
-| ALG-001 | Reject sampling configurations below the Nyquist limit. | `test_nyquist_validation` | Invalid configuration raises a clear error. |
-| ALG-002 | Reconstruct a point reflector at its expected axial position. | `test_delay_and_sum_focuses_impulse_on_expected_depth` | Peak error is at most two reconstruction samples. |
-| ALG-003 | Extract an RF amplitude envelope using an analytic signal. | `test_envelope_of_sinusoid_is_nearly_constant` | Interior sinusoid envelope is `1 ± 0.03`. |
-| ALG-004 | Increase compensation gain monotonically with depth. | `test_tgc_increases_with_depth` | Gain strictly increases for positive attenuation. |
+| ALG-001 | Reconstruct a point reflector using physical propagation delays. | `test_delay_and_sum_focuses_impulse_on_expected_depth` | Peak error is at most two reconstruction samples. |
+| ALG-002 | Reconstruct finite output with valid fractional sample support. | `test_coarse_real_reconstruction_is_finite`, `DelayInterpolationTests` | Measured output is finite; unsupported sample positions are rejected. |
+| ALG-003 | Apply depth-dependent receive aperture and reject invalid F-number. | Beamformer validation and aperture study review | Aperture weights remain finite; positive F-number required. |
+| ALG-004 | Compound reproducible subsets selected by physical steering angle. | `AngleSelectionTests` | Single angle selects 0°; multi-angle subsets include published extremes. |
 | ALG-005 | Bound the displayed image to the configured dynamic range. | `test_log_compression_range_and_peak` | Peak is 0 dB; floor is the configured negative limit. |
-| ALG-006 | Quantify a low-echo cyst relative to its background. | `test_cyst_metrics_detect_low_echo_region` | Contrast is negative, CNR > 1, and gCNR is in `[0, 1]` for the controlled fixture. |
-| ALG-007 | Reject malformed channel-data dimensions. | `test_beamformer_rejects_wrong_shape` | Reconstruction fails before numerical processing. |
+| ALG-006 | Provide named adaptive beamforming baselines. | `AdaptiveBeamformingTests` | Coherent/incoherent, DMAS identity and finite MVDR fixtures pass. |
+| ALG-007 | Keep preprocessing and display stages separately testable. | `ProcessingTests` and enhancement report | RF tone, common-mode, TGC, compression and diffusion fixtures pass; stage effects recorded. |
 | DATA-001 | Preserve the published UFF acquisition dimensions and metadata. | `test_uff_dimensions_and_metadata` | 75 × 128 × 1,536 RF tensor, 20.832 MHz sampling, and 609 × 387 reference grid. |
-| ALG-008 | Produce finite B-mode output from measured RF channel data. | `test_coarse_real_reconstruction_is_finite` | Every reconstructed dB sample is finite. |
-| DATA-002 | Use reproducible steering-angle subsets. | `AngleSelectionTests` | Single-angle selects 0°; multi-angle selection includes both published extremes. |
-| ALG-009 | Adaptive aperture methods shall distinguish coherent and incoherent fixtures. | `AdaptiveBeamformingTests` | CF/PCF are one for coherent samples and near zero for uniformly distributed phase. |
-| ALG-010 | DMAS and MVDR implementations shall return finite, normalized baseline outputs. | `AdaptiveBeamformingTests` | Pair identity matches the analytical fixture; MVDR output is finite. |
+| DATA-002 | Bind USTB retrieval to published bytes and checksum. | Downloader implementation review and local data provenance | Published size/MD5 retained; mismatch rejection requires a dedicated negative-path automated test before formal release. |
 | MET-001 | Similarity metrics shall recover identity and reject incompatible shapes. | `MetricTests` | Correlation/SSIM are one, RMSE zero, PSNR infinite for identical images. |
 | MET-002 | Physical point-target measurement shall recover analytical Gaussian FWHM. | `test_gaussian_point_target_fwhm` | Axial and lateral error are each below 0.02 mm. |
-| ALG-011 | RF preprocessing and optional display stages shall be deterministic and finite. | `ProcessingTests` | Carrier, common-mode, automatic TGC, compression, and diffusion fixtures pass. |
 | PERF-001 | Compiled and reference DAS shall be numerically equivalent. | `test_numba_kernel_matches_numpy_on_coarse_real_grid` | RF agrees at `rtol=1e-5`, `atol=1e-7`. |
 | MET-003 | Translation registration and uncertainty calculation shall be reproducible. | `RoiAnalysisTests` | Integer shift is exact and fixed-seed bootstrap output repeats. |
 | DATA-003 | EPFL RF dimensions shall agree with its settings and global time axis. | `EpflLoaderTests` | Mismatched angle, element, sample, or sampling metadata is rejected. |
-| DATA-004 | Sparse-angle selection shall follow physical angle values despite alternating storage. | `test_physical_angle_selection_handles_alternating_storage_order` | Selected angles span the negative extreme, zero, and positive extreme. |
+| DATA-004 | Selective EPFL retrieval shall retain integrity checks. | Downloader implementation review and EPFL provenance | Member size, ZIP CRC32 and SHA-256 retained; negative-path automated download tests remain future work. |
 | ALG-012 | Channel-analytic CPWC shall recover a known envelope on a coarse output grid. | `test_recovers_known_envelope_on_undersampled_depth_grid` | Gaussian amplitude absolute error ≤ 1e-9 at the analytical sample coordinates. |
 | ALG-013 | Analytic RF at shared coordinates shall not depend on output-grid subsampling. | `test_complex_rf_is_invariant_to_output_grid_subsampling` | Complex output agrees at `rtol=1e-12`, `atol=1e-12`. |
 | PERF-003 | Analytic Numba and NumPy shall agree without external datasets. | `test_numba_matches_numpy_with_delays_angles_and_invalid_samples` | Real/analytic RF agree at `rtol=1e-5`, `atol=1e-7`; displayed dB at `atol=1e-4`; 1/3/5 physical-angle subsets. |
@@ -49,6 +45,8 @@ make a clinical claim, or process data in a care-delivery workflow.
 | PERF-007 | Cache performance evidence shall separate preparation, repeated timing and memory. | `CacheProfileReportTests` and `artifacts/cache_profile/metrics.json` | Four fresh-process cases retain preparation time/bytes, raw repeats, RSS, break-even calculation and full-array parity. |
 | ALG-017 | Cubic channel-delay interpolation shall reduce controlled fractional-delay error and preserve backend parity. | `DelayInterpolationTests` | Cubic sinusoid RMSE is less than 20% of linear; NumPy/Numba real/analytic outputs agree; invalid method/support fails. |
 | MET-008 | Measured interpolation/sound-speed study shall retain scope and non-selection limits. | `InterpolationStudyReportTests` and `artifacts/interpolation_study/metrics.json` | Both methods at 11/full angles and all five fixed speeds are present; defaults explicitly remain unchanged. |
+| DATA-008 | Frozen cubic transfer shall separate change from reference quality and preserve geometry. | `InterpolationTransferTests` and `artifacts/interpolation_transfer/metrics.json` | Ten measured cubic cache/batch comparisons pass; unavailable reference scores are null; axes, angles and source/settings hashes retained. |
+| PERF-008 | Matched interpolation profiling shall reverse process order and require same-method repeat parity. | `InterpolationProfileTests` and `artifacts/interpolation_profile/metrics.json` | Eight fresh processes, ten warm calls/configuration; geometry/output drift rejected; four repeat comparisons pass; raw timings and separate RSS retained. |
 
 ## Reproducibility controls
 
@@ -64,7 +62,7 @@ make a clinical claim, or process data in a care-delivery workflow.
 
 | Risk | Existing control | Further work before real-data use |
 |---|---|---|
-| Incorrect propagation-speed assumption | One explicit configuration value; synthetic focus test | Add speed-of-sound sensitivity study and calibration dataset. |
+| Incorrect propagation-speed assumption | Metadata speed, synthetic focus test and fixed homogeneous speed sweep | Add calibration dataset and aberration study; separate geometry shifts from defocus. |
 | Delay/interpolation error | Linear/cubic parity, analytical sinusoid error and measured phantom comparison | Add higher-order analytical point-spread-function and bandwidth sweeps. |
 | Limited generalization | Four in-vivo carotid acquisitions, two explicit EPFL volunteers, three probes, and physical phantom cross-platform evidence | Add more subjects, disease states, operators, laboratories, and multi-vendor human acquisitions. |
 | ROI selection bias | Stored/overlaid geometry, common ROI, registration, and bootstrap intervals | Add blinded multi-observer ROIs and spatial uncertainty. |
@@ -79,7 +77,8 @@ make a clinical claim, or process data in a care-delivery workflow.
 4. Run the synthetic, angle benchmark, adaptive, phantom, enhancement, acceleration, ROI, external,
    `ultrasound-quality`, `ultrasound-validate-analytic`, `ultrasound-aperture-study` and
    `ultrasound-profile`, `ultrasound-aperture-transfer`, `ultrasound-batch-profile` and
-   `ultrasound-cache-profile` and `ultrasound-interpolation-study` commands
+   `ultrasound-cache-profile`, `ultrasound-interpolation-study`,
+   `ultrasound-interpolation-transfer` and `ultrasound-interpolation-profile` commands
    documented in the README. Run profiling after other compute
    experiments finish; do not benchmark backends concurrently.
    Keep legacy and analytic results separate. Analytic fixed-ROI/FWHM measurements are
@@ -88,3 +87,14 @@ make a clinical claim, or process data in a care-delivery workflow.
 6. Inspect point targets, cyst ROIs, carotid ROI, and depth behavior for gross artifacts.
 7. Compare metric JSON values with the approved baseline using stated tolerances.
 8. Record the commit SHA, dependency freeze, dataset checksums, host, and command lines.
+
+## v0.10 local execution record
+
+- Python 3.12 with installed measured datasets and Numba: **84 tests passed**, including
+  113 pytest subtests. Cubic backend acceptance uses RF `rtol=1e-5, atol=1e-7` and
+  B-mode `rtol=0, atol=1e-4` dB.
+- Five transfer acquisitions, 11/full angles: all ten cached/batched cubic comparisons passed.
+- Matched profile: two reversed process orders, five timed repeats per worker, eight Numba
+  threads; all four same-method repeat comparisons passed.
+- Inspect the JSON artifacts for host, dependencies, checksums, raw repeats and limitations.
+  Clinical validation, sustained frame streaming and device-hardware deployment remain excluded.

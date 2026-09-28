@@ -46,9 +46,18 @@ class AnalyticCacheTests(unittest.TestCase):
         for batch in (0, -1, 1.5, True, "2"):
             with self.subTest(batch=batch), self.assertRaisesRegex(ValueError, "batch_size"):
                 prepare_analytic_channel_cache(acquisition, batch)
-        malformed = replace(acquisition, channel_data=acquisition.channel_data.astype(np.int16))
-        with self.assertRaisesRegex(ValueError, "real floating"):
-            prepare_analytic_channel_cache(malformed)
+        # Half precision would silently truncate the float32 Hilbert result,
+        # and is not supported by the compiled beamformer.
+        for dtype in (np.int16, np.float16, np.complex64):
+            malformed = replace(acquisition, channel_data=acquisition.channel_data.astype(dtype))
+            with self.subTest(dtype=dtype), self.assertRaisesRegex(ValueError, "float32 or float64"):
+                prepare_analytic_channel_cache(malformed)
+        if np.dtype(np.longdouble) != np.dtype(np.float64):
+            malformed = replace(
+                acquisition, channel_data=acquisition.channel_data.astype(np.longdouble)
+            )
+            with self.assertRaisesRegex(ValueError, "float32 or float64"):
+                prepare_analytic_channel_cache(malformed)
 
     @unittest.skipUnless(numba_available(), "Numba extra not installed")
     def test_cached_and_uncached_outputs_match_for_multiple_selections(self):
