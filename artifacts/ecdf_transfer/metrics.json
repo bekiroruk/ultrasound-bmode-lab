@@ -1,0 +1,1215 @@
+{
+  "study": "Measured-RF eCDF topology and directional texture diagnostic",
+  "settings": {
+    "human_case_ids": [
+      "picmus_cross",
+      "epfl_v5",
+      "epfl_v8"
+    ],
+    "human_angles": "all available",
+    "phantom_angles": 11,
+    "f_number": 1.7,
+    "analytic": true,
+    "angle_batch_size": 8,
+    "axial_stride": 2,
+    "lateral_stride": 2,
+    "rank_bin_counts": [
+      16,
+      32,
+      64
+    ],
+    "max_lag_pixels": 16,
+    "single_crossing_control_repeats": 100,
+    "single_crossing_control_seed": 20261006,
+    "minimum_autocorrelation_pairs": 30,
+    "autocorrelation_transform": "log1p(envelope/background median)"
+  },
+  "scope": "Two explicitly distinct EPFL volunteers, a PICMUS cross-section with unspecified subject identity, and one physical phantom acquisition. Human ROI heuristic uses the embedded UFF reference for PICMUS and each EPFL case's own full-angle image. Phantom cyst ROIs are fixed nominal geometry. These are previously inspected acquisitions, not blinded prospective validation.",
+  "limitations": "Raw rank-bin sign changes and total-variation gaps vary with bins, finite samples and spatial dependence: they cannot verify a population density crossing count. The sample-count-matched Rayleigh control is IID and not a model fit or hypothesis test. Annulus texture is not homogeneous or stationary by assumption; 1/e decorrelation is descriptive, not an independent-sample count or a bootstrap block-size recommendation. No clinical or 95% coverage claim.",
+  "datasets": [
+    {
+      "case": "picmus_cross",
+      "file": "PICMUS_carotid_cross.uff",
+      "sha256": "50bd73fded4d31c5c24f1f1adec2f8bc7483931fc95c7816a59d00b778aef6bd",
+      "subject": "PICMUS volunteer; public ID unavailable",
+      "platform": "Verasonics Vantage 256",
+      "probe": "L11/L11-4v",
+      "citation": "H. Liebgott, A. Rodriguez-Molares, F. Cervenansky, J. A. Jensen and O. Bernard, Plane-Wave Imaging Challenge in Medical Ultrasound, 2016 IEEE International Ultrasonics Symposium (IUS), Tours, 2016, pp. 1-4. doi: 10.1109/ULTSYM.2016.7728908",
+      "channel_shape": [
+        75,
+        128,
+        1536
+      ],
+      "angle_indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74
+      ],
+      "grid_shape": [
+        305,
+        194
+      ],
+      "grid_spacing_mm": [
+        0.14784946535272817,
+        0.19713262472436835
+      ]
+    },
+    {
+      "case": "epfl_v5",
+      "file": "invivo_14965.npz",
+      "sha256": "55432c87f1f12aac866a75976cb5680c3d303d5b103076fcd0c18841256c749e",
+      "subject": "EPFL volunteer 005",
+      "platform": "EPFL Verasonics acquisition",
+      "probe": "GE 9L-D",
+      "citation": "R. Vi\u00f1als and J.-P. Thiran, Deep Learning-based Inpainting for Sparse Arrays in Ultrafast Ultrasound Imaging, IEEE Transactions on Computational Imaging, 2025.",
+      "channel_shape": [
+        87,
+        192,
+        2133
+      ],
+      "angle_indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86
+      ],
+      "grid_shape": [
+        128,
+        96
+      ],
+      "grid_spacing_mm": [
+        0.4705882352941177,
+        0.418848167539267
+      ],
+      "settings_sha256": {
+        "beamforming_settings.yaml": "5c2b56ed9c8fc2aac10b68f94599eaf2853274eda588cd6c407fd40baed0f316",
+        "steering_angles.npy": "d8524cf54faea5f9cfd08b351286a10e55e7234064f40099d5cf210f4c39878b",
+        "time_axis.npy": "490c59141375effa5ac843b864ef163994006d52cb1fe165d0025271ccbceb06"
+      }
+    },
+    {
+      "case": "epfl_v8",
+      "file": "invivo_18198.npz",
+      "sha256": "d82d56f1888e1be5b21cf9302ba95bf97ff91d4b7f79dbe32cff7a89b210b6f0",
+      "subject": "EPFL volunteer 008",
+      "platform": "EPFL Verasonics acquisition",
+      "probe": "GE 9L-D",
+      "citation": "R. Vi\u00f1als and J.-P. Thiran, Deep Learning-based Inpainting for Sparse Arrays in Ultrafast Ultrasound Imaging, IEEE Transactions on Computational Imaging, 2025.",
+      "channel_shape": [
+        87,
+        192,
+        2133
+      ],
+      "angle_indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86
+      ],
+      "grid_shape": [
+        128,
+        96
+      ],
+      "grid_spacing_mm": [
+        0.4705882352941177,
+        0.418848167539267
+      ],
+      "settings_sha256": {
+        "beamforming_settings.yaml": "5c2b56ed9c8fc2aac10b68f94599eaf2853274eda588cd6c407fd40baed0f316",
+        "steering_angles.npy": "d8524cf54faea5f9cfd08b351286a10e55e7234064f40099d5cf210f4c39878b",
+        "time_axis.npy": "490c59141375effa5ac843b864ef163994006d52cb1fe165d0025271ccbceb06"
+      }
+    },
+    {
+      "case": "picmus_contrast_phantom",
+      "file": "PICMUS_experiment_contrast_speckle.uff",
+      "sha256": "161ce19ec50910d0e817e8963d48afaaffb1b40fd787e9ebd8411e502fab7c5f",
+      "citation": "H. Liebgott, A. Rodriguez-Molares, F. Cervenansky, J. A. Jensen and O. Bernard, Plane-Wave Imaging Challenge in Medical Ultrasound, 2016 IEEE International Ultrasonics Symposium (IUS), Tours, 2016, pp. 1-4. doi: 10.1109/ULTSYM.2016.7728908",
+      "channel_shape": [
+        75,
+        128,
+        3328
+      ],
+      "angle_indices": [
+        0,
+        7,
+        15,
+        22,
+        30,
+        37,
+        44,
+        52,
+        59,
+        67,
+        74
+      ],
+      "grid_shape": [
+        305,
+        194
+      ],
+      "grid_spacing_mm": [
+        0.14784946535272817,
+        0.19713262472436835
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "roi_m": {
+        "center_x_m": -0.002490859478712082,
+        "center_z_m": 0.01919354870915413,
+        "radius_m": 0.0022
+      },
+      "background_inner_radius_m": 0.0032,
+      "background_outer_radius_m": 0.0052,
+      "target_pixels": 519,
+      "background_pixels": 1808,
+      "ecdf_threshold_separation": 0.5959298855866455,
+      "histogram64_gcnr": 0.5457706702815148,
+      "rank_binned": [
+        {
+          "bins": 16,
+          "rank_binned_tv": 0.5934137722304635,
+          "sign_changes": 1,
+          "empty_bins": 0
+        },
+        {
+          "bins": 32,
+          "rank_binned_tv": 0.5934137722304635,
+          "sign_changes": 1,
+          "empty_bins": 0
+        },
+        {
+          "bins": 64,
+          "rank_binned_tv": 0.5983010639930431,
+          "sign_changes": 3,
+          "empty_bins": 0
+        }
+      ],
+      "background_texture": {
+        "axial": {
+          "rho": [
+            1.0,
+            0.9024422225595811,
+            0.8080513933874667,
+            0.7477045329039892,
+            0.689379741204773,
+            0.614426735860787,
+            0.5465384867055163,
+            0.48375272299930483,
+            0.4306234280980917,
+            0.38350407002415876,
+            0.34885083685118407,
+            0.30497188567523154,
+            0.2689012581628996,
+            0.2239817519420764,
+            0.18467422682756102,
+            0.1311555141167291,
+            0.0788973763232826
+          ],
+          "pair_counts": [
+            1808,
+            1722,
+            1636,
+            1550,
+            1464,
+            1378,
+            1292,
+            1206,
+            1122,
+            1038,
+            954,
+            870,
+            788,
+            706,
+            628,
+            576,
+            536
+          ],
+          "one_over_e_crossing_pixels": 9.450885167762694,
+          "one_over_e_crossing_mm": 1.3973083191637428
+        },
+        "lateral": {
+          "rho": [
+            1.0,
+            0.9141431676978726,
+            0.7852365717031947,
+            0.6774245999930181,
+            0.5906862646035583,
+            0.5132048721798131,
+            0.4199674301420296,
+            0.30999886968271734,
+            0.19443373016601473,
+            0.07250178117894727,
+            -0.05448153248345289,
+            -0.148751688903257,
+            -0.21989503461537616,
+            -0.27383835844366633,
+            -0.33692288910083174,
+            -0.3982555915161207,
+            -0.45576109399572207
+          ],
+          "pair_counts": [
+            1808,
+            1694,
+            1580,
+            1466,
+            1352,
+            1238,
+            1126,
+            1014,
+            904,
+            794,
+            684,
+            600,
+            536,
+            488,
+            456,
+            424,
+            402
+          ],
+          "one_over_e_crossing_pixels": 6.47366255185144,
+          "one_over_e_crossing_mm": 1.2761700904263267
+        }
+      },
+      "case": "picmus_cross",
+      "label": "PICMUS carotid \u00b7 cross",
+      "roi_selection": "embedded UFF reference heuristic",
+      "single_crossing_rayleigh_control": {
+        "16": {
+          "median": 1.0,
+          "p05_p95": [
+            1.0,
+            1.0999999999999943
+          ]
+        },
+        "32": {
+          "median": 3.0,
+          "p05_p95": [
+            1.0,
+            5.0
+          ]
+        },
+        "64": {
+          "median": 6.0,
+          "p05_p95": [
+            2.9000000000000004,
+            9.099999999999994
+          ]
+        }
+      }
+    },
+    {
+      "roi_m": {
+        "center_x_m": 0.004712041884816751,
+        "center_z_m": 0.01723529411764706,
+        "radius_m": 0.0022
+      },
+      "background_inner_radius_m": 0.0032,
+      "background_outer_radius_m": 0.0052,
+      "target_pixels": 79,
+      "background_pixels": 272,
+      "ecdf_threshold_separation": 0.5061895011169024,
+      "histogram64_gcnr": 0.5020941921072226,
+      "rank_binned": [
+        {
+          "bins": 16,
+          "rank_binned_tv": 0.5000465376023827,
+          "sign_changes": 1,
+          "empty_bins": 0
+        },
+        {
+          "bins": 32,
+          "rank_binned_tv": 0.5404877140729709,
+          "sign_changes": 7,
+          "empty_bins": 0
+        },
+        {
+          "bins": 64,
+          "rank_binned_tv": 0.5801377513030529,
+          "sign_changes": 15,
+          "empty_bins": 0
+        }
+      ],
+      "background_texture": {
+        "axial": {
+          "rho": [
+            1.0,
+            0.6682031716447678,
+            0.4634626221052961,
+            0.33265039703546023,
+            0.23836163594108412,
+            0.0349020226069229,
+            -0.11200399690691165,
+            -0.3577296400668373,
+            -0.48495393013862703,
+            -0.5664192997831308,
+            -0.6249144451723612,
+            -0.638656593653058,
+            -0.5521906814580287,
+            -0.47076869812657457,
+            -0.3794046789441748,
+            -0.43348654088300176,
+            -0.1925691541610512
+          ],
+          "pair_counts": [
+            272,
+            232,
+            192,
+            152,
+            112,
+            80,
+            70,
+            60,
+            54,
+            48,
+            44,
+            40,
+            42,
+            40,
+            47,
+            50,
+            55
+          ],
+          "one_over_e_crossing_pixels": 2.7306899709321923,
+          "one_over_e_crossing_mm": 1.285030574556326
+        },
+        "lateral": {
+          "rho": [
+            1.0,
+            0.8180931607080122,
+            0.6528799955582413,
+            0.47924266927458337,
+            0.24444499643728956,
+            -0.019594170839563142,
+            -0.22981899992631644,
+            -0.3486872990920149,
+            -0.382883343963485,
+            -0.3940387166598746,
+            -0.4266455975853315,
+            -0.42834778982945626,
+            -0.4066980544985469,
+            -0.45905584221425755,
+            -0.4506699562600685,
+            -0.5722854643760618,
+            -0.5608079080355103
+          ],
+          "pair_counts": [
+            272,
+            236,
+            200,
+            164,
+            130,
+            96,
+            80,
+            68,
+            62,
+            56,
+            50,
+            44,
+            42,
+            40,
+            42,
+            40,
+            45
+          ],
+          "one_over_e_crossing_pixels": 3.474294428719963,
+          "one_over_e_crossing_mm": 1.455201854961241
+        }
+      },
+      "case": "epfl_v5",
+      "label": "EPFL volunteer 005 \u00b7 carotid",
+      "roi_selection": "same-acquisition full-angle image heuristic; selection bias",
+      "single_crossing_rayleigh_control": {
+        "16": {
+          "median": 2.0,
+          "p05_p95": [
+            1.0,
+            3.0999999999999943
+          ]
+        },
+        "32": {
+          "median": 6.0,
+          "p05_p95": [
+            3.0,
+            9.0
+          ]
+        },
+        "64": {
+          "median": 15.0,
+          "p05_p95": [
+            11.0,
+            22.0
+          ]
+        }
+      }
+    },
+    {
+      "roi_m": {
+        "center_x_m": -0.004921465968586388,
+        "center_z_m": 0.017705882352941175,
+        "radius_m": 0.0022
+      },
+      "background_inner_radius_m": 0.0032,
+      "background_outer_radius_m": 0.0052,
+      "target_pixels": 79,
+      "background_pixels": 272,
+      "ecdf_threshold_separation": 0.5339724497393894,
+      "histogram64_gcnr": 0.5163812360387192,
+      "rank_binned": [
+        {
+          "bins": 16,
+          "rank_binned_tv": 0.5282483246463141,
+          "sign_changes": 1,
+          "empty_bins": 0
+        },
+        {
+          "bins": 32,
+          "rank_binned_tv": 0.5568224125093075,
+          "sign_changes": 7,
+          "empty_bins": 0
+        },
+        {
+          "bins": 64,
+          "rank_binned_tv": 0.6107594936708861,
+          "sign_changes": 13,
+          "empty_bins": 0
+        }
+      ],
+      "background_texture": {
+        "axial": {
+          "rho": [
+            1.0,
+            0.6181788778527044,
+            0.4100396946984116,
+            0.16909172498431665,
+            0.00030074889287821764,
+            -0.19474503743730612,
+            -0.25807748731830754,
+            -0.3515078568823639,
+            -0.3675984521503674,
+            -0.32147165447928394,
+            -0.5242549917540555,
+            -0.4420841513847948,
+            -0.5757711260103003,
+            -0.40190536457491305,
+            -0.25733843794301786,
+            -0.0177916166269289,
+            0.27294738486490766
+          ],
+          "pair_counts": [
+            272,
+            232,
+            192,
+            152,
+            112,
+            80,
+            70,
+            60,
+            54,
+            48,
+            44,
+            40,
+            42,
+            40,
+            47,
+            50,
+            55
+          ],
+          "one_over_e_crossing_pixels": 2.174976587588582,
+          "one_over_e_crossing_mm": 1.0235183941593327
+        },
+        "lateral": {
+          "rho": [
+            1.0,
+            0.9029382285445092,
+            0.84711674043202,
+            0.8089717521771596,
+            0.7412931478852812,
+            0.6554492714279555,
+            0.6058444131456188,
+            0.5565422004807835,
+            0.46546892642858045,
+            0.37014571612066915,
+            0.3550999399685922,
+            0.2535961598128936,
+            0.2394197066529066,
+            0.2757443272183683,
+            0.4009545458658241,
+            0.37786677271271235,
+            0.41106280870422796
+          ],
+          "pair_counts": [
+            272,
+            236,
+            200,
+            164,
+            130,
+            96,
+            80,
+            68,
+            62,
+            56,
+            50,
+            44,
+            42,
+            40,
+            42,
+            40,
+            45
+          ],
+          "one_over_e_crossing_pixels": 9.1506253267575,
+          "one_over_e_crossing_mm": 3.8327226499507856
+        }
+      },
+      "case": "epfl_v8",
+      "label": "EPFL volunteer 008 \u00b7 carotid",
+      "roi_selection": "same-acquisition full-angle image heuristic; selection bias",
+      "single_crossing_rayleigh_control": {
+        "16": {
+          "median": 3.0,
+          "p05_p95": [
+            1.0,
+            5.0
+          ]
+        },
+        "32": {
+          "median": 5.0,
+          "p05_p95": [
+            3.0,
+            11.0
+          ]
+        },
+        "64": {
+          "median": 17.0,
+          "p05_p95": [
+            9.0,
+            23.0
+          ]
+        }
+      }
+    },
+    {
+      "roi_m": {
+        "center_x_m": 0,
+        "center_z_m": 0.015,
+        "radius_m": 0.0015
+      },
+      "background_inner_radius_m": 0.0025,
+      "background_outer_radius_m": 0.0045000000000000005,
+      "target_pixels": 241,
+      "background_pixels": 1507,
+      "ecdf_threshold_separation": 0.9399427842956934,
+      "histogram64_gcnr": 0.9283344392833444,
+      "rank_binned": [
+        {
+          "bins": 16,
+          "rank_binned_tv": 0.9326435142227008,
+          "sign_changes": 1,
+          "empty_bins": 0
+        },
+        {
+          "bins": 32,
+          "rank_binned_tv": 0.9326435142227008,
+          "sign_changes": 1,
+          "empty_bins": 0
+        },
+        {
+          "bins": 64,
+          "rank_binned_tv": 0.9326435142227009,
+          "sign_changes": 1,
+          "empty_bins": 0
+        }
+      ],
+      "background_texture": {
+        "axial": {
+          "rho": [
+            1.0,
+            0.6968517183223579,
+            0.3134125535964625,
+            0.15995452214432077,
+            0.0951529707388683,
+            0.04542857879212912,
+            0.020787900701186964,
+            0.012779773574668142,
+            0.035316312701666575,
+            0.07772286519649095,
+            0.1026548486892577,
+            0.11483367819277986,
+            0.13045501640725893,
+            0.13462674886797854,
+            0.16960461227016696,
+            0.19438944248906495,
+            0.17245493070269943
+          ],
+          "pair_counts": [
+            1507,
+            1435,
+            1363,
+            1291,
+            1220,
+            1149,
+            1078,
+            1007,
+            936,
+            867,
+            798,
+            729,
+            660,
+            592,
+            531,
+            488,
+            456
+          ],
+          "one_over_e_crossing_pixels": 1.8579516841637291,
+          "one_over_e_crossing_mm": 0.2746971631548082
+        },
+        "lateral": {
+          "rho": [
+            1.0,
+            0.578761976247761,
+            0.18378951610822603,
+            0.09895962003674004,
+            0.032374702769330486,
+            0.01836631633328201,
+            0.09238177250117857,
+            0.09492921188324184,
+            0.0662056712801334,
+            0.11211546897366045,
+            0.09841270300211763,
+            0.07254628657855657,
+            0.14951016634450875,
+            0.1894723014559775,
+            0.1540970084302376,
+            0.21847842464004505,
+            0.19007534064392279
+          ],
+          "pair_counts": [
+            1507,
+            1412,
+            1317,
+            1222,
+            1128,
+            1035,
+            942,
+            850,
+            758,
+            666,
+            574,
+            505,
+            457,
+            422,
+            393,
+            368,
+            347
+          ],
+          "one_over_e_crossing_pixels": 1.5339170609561452,
+          "one_over_e_crossing_mm": 0.3023850963357738
+        }
+      },
+      "case": "picmus_contrast_phantom",
+      "label": "shallow_cyst",
+      "roi_selection": "fixed nominal cyst geometry",
+      "single_crossing_rayleigh_control": {
+        "16": {
+          "median": 1.0,
+          "p05_p95": [
+            1.0,
+            3.0
+          ]
+        },
+        "32": {
+          "median": 3.0,
+          "p05_p95": [
+            1.0,
+            5.0
+          ]
+        },
+        "64": {
+          "median": 8.0,
+          "p05_p95": [
+            5.0,
+            13.0
+          ]
+        }
+      }
+    },
+    {
+      "roi_m": {
+        "center_x_m": 0,
+        "center_z_m": 0.043000000000000003,
+        "radius_m": 0.0015
+      },
+      "background_inner_radius_m": 0.0025,
+      "background_outer_radius_m": 0.0045000000000000005,
+      "target_pixels": 241,
+      "background_pixels": 1518,
+      "ecdf_threshold_separation": 0.9310350483000672,
+      "histogram64_gcnr": 0.9261585729202544,
+      "rank_binned": [
+        {
+          "bins": 16,
+          "rank_binned_tv": 0.9077132501271055,
+          "sign_changes": 1,
+          "empty_bins": 0
+        },
+        {
+          "bins": 32,
+          "rank_binned_tv": 0.9247125776983255,
+          "sign_changes": 1,
+          "empty_bins": 0
+        },
+        {
+          "bins": 64,
+          "rank_binned_tv": 0.9261585729202544,
+          "sign_changes": 1,
+          "empty_bins": 0
+        }
+      ],
+      "background_texture": {
+        "axial": {
+          "rho": [
+            1.0,
+            0.7186916493958195,
+            0.3387210915481,
+            0.15182773929379267,
+            0.10354879096864929,
+            0.10712252982842362,
+            0.11034295869220757,
+            0.11742036295545358,
+            0.13527712310072418,
+            0.128352998748202,
+            0.11485743192695749,
+            0.0877031888561978,
+            0.06043305350043719,
+            0.03462638995200659,
+            0.03250773707309882,
+            0.031884013687667884,
+            0.037503930701082905
+          ],
+          "pair_counts": [
+            1518,
+            1446,
+            1374,
+            1302,
+            1231,
+            1160,
+            1089,
+            1018,
+            949,
+            880,
+            811,
+            742,
+            673,
+            604,
+            537,
+            494,
+            460
+          ],
+          "one_over_e_crossing_pixels": 1.9232615553465378,
+          "one_over_e_crossing_mm": 0.284353192691442
+        },
+        "lateral": {
+          "rho": [
+            1.0,
+            0.6135238405491974,
+            0.17511253893566167,
+            0.05997709612494769,
+            0.06079401291044404,
+            0.06842773600882512,
+            0.08486256974242003,
+            0.08028166837527921,
+            0.008909519539354297,
+            -0.025365656318864126,
+            0.018977307584469513,
+            0.056863844590282625,
+            0.09407164558217118,
+            0.12935391539490784,
+            0.11975553663893598,
+            0.1299836110136823,
+            0.1942146410427004
+          ],
+          "pair_counts": [
+            1518,
+            1424,
+            1330,
+            1236,
+            1142,
+            1048,
+            954,
+            860,
+            766,
+            676,
+            586,
+            514,
+            467,
+            430,
+            400,
+            378,
+            358
+          ],
+          "one_over_e_crossing_pixels": 1.5603058098039027,
+          "one_over_e_crossing_mm": 0.3075871796593244
+        }
+      },
+      "case": "picmus_contrast_phantom",
+      "label": "deep_cyst",
+      "roi_selection": "fixed nominal cyst geometry",
+      "single_crossing_rayleigh_control": {
+        "16": {
+          "median": 1.0,
+          "p05_p95": [
+            1.0,
+            3.0
+          ]
+        },
+        "32": {
+          "median": 3.0,
+          "p05_p95": [
+            1.0,
+            5.099999999999994
+          ]
+        },
+        "64": {
+          "median": 9.0,
+          "p05_p95": [
+            4.9,
+            13.0
+          ]
+        }
+      }
+    }
+  ],
+  "phantom_homogeneous_speckle_control": {
+    "center_mm": [
+      10,
+      28
+    ],
+    "radius_mm": 3,
+    "pixels": 969,
+    "background_texture": {
+      "axial": {
+        "rho": [
+          1.0,
+          0.7142706526823335,
+          0.32557934670836536,
+          0.15380925299900697,
+          0.067431042056569,
+          -0.013394419144101326,
+          -0.07019697835523593,
+          -0.05757512420165796,
+          0.011511710044993401,
+          0.07569209014247853,
+          0.09888375006957628,
+          0.0832540191472569,
+          0.0469998175234461,
+          0.003649671944095474,
+          -0.010269347281155675,
+          0.018000220871681512,
+          0.06801924425486425
+        ],
+        "pair_counts": [
+          969,
+          939,
+          909,
+          879,
+          849,
+          819,
+          789,
+          759,
+          729,
+          699,
+          669,
+          639,
+          610,
+          581,
+          552,
+          524,
+          496
+        ],
+        "one_over_e_crossing_pixels": 1.89117303676993,
+        "one_over_e_crossing_mm": 0.2796089223759295
+      },
+      "lateral": {
+        "rho": [
+          1.0,
+          0.60518100261222,
+          0.16392867750246934,
+          0.05116156169621495,
+          0.05212645677533222,
+          0.055870415835732185,
+          0.0058440750844362425,
+          -0.025053737582238327,
+          0.028859570357268646,
+          0.10294016207835555,
+          0.16222531074714452,
+          0.2043815162051569,
+          0.11734580204475314,
+          -0.009855452452781539,
+          0.0027365287109212813,
+          0.02638053779014753,
+          0.014061785351135845
+        ],
+        "pair_counts": [
+          969,
+          929,
+          889,
+          849,
+          809,
+          769,
+          729,
+          689,
+          649,
+          610,
+          572,
+          534,
+          496,
+          460,
+          424,
+          388,
+          353
+        ],
+        "one_over_e_crossing_pixels": 1.5377910731275009,
+        "one_over_e_crossing_mm": 0.3031487905233273
+      }
+    }
+  }
+}

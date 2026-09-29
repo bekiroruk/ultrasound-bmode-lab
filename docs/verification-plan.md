@@ -181,3 +181,15 @@ checks passed. The generated numerical summaries and figure were inspected.
 Local v0.15 run: **119 tests and 169 subtests passed** with noninteractive Agg
 plotting; Ruff and Git whitespace checks passed. The existing Windows Python
 installation has incomplete Tk resources, so GUI-backend tests require Agg.
+
+## v0.16 measured-RF transfer diagnostic
+
+| Requirement | Evidence | Result / limitation |
+|---|---|---|
+| MET-015 | `test_ecdf_transfer.py`; `artifacts/ecdf_transfer/metrics.json` | Alternating-support fixture tests multi-crossing behavior; equal-rank ties/transform stability and deterministic one-crossing control pass. Real sign changes are resolution-sensitive, not population topology proof. |
+| MET-016 | `test_ecdf_transfer.py`; phantom homogeneous-speckle control and ROI overlays | Constant-tile fixture has positive short-lag and reduced long-lag correlation. Phantom control is 0.280/0.303 mm axial/lateral; human annuli are heterogeneous. |
+| DATA-011 | `artifacts/ecdf_transfer/metrics.json`; `rois.png` | Four measured RF files, two explicitly separate EPFL volunteer IDs, SHA-256, angles, geometry and ROI selection policies retained. No new participant-independence or clinical claim. |
+
+Local v0.16 run: **123 tests and 169 subtests passed** with Agg; Ruff and Git
+whitespace checks passed. Measured inputs are not redistributed and CI exercises
+data-free algorithm tests; measured-transfer artifacts were generated locally.

@@ -1,6 +1,6 @@
 # Software requirements specification
 
-Status: research baseline, revision 13 (bin-free threshold-separation audit)
+Status: research baseline, revision 14 (measured-RF eCDF transfer diagnostic)
 
 This specification defines verifiable behavior for the ultrasound B-mode laboratory. The
 software is educational/research software and is not intended for diagnosis, treatment,
@@ -81,6 +81,14 @@ channel files remain outside Git.
 | MET-013 | A bin-free eCDF threshold-separation candidate shall preserve strict monotone-transform order and disclose its one-crossing limitation. | Ties and transform invariance pass; a multimodal counterexample demonstrates that it is not general density-overlap gCNR. |
 | MET-014 | Conservative DKW intervals shall be evaluated only with their independence condition stated. | Fixed-seed IID Rayleigh/lognormal and offset-tile scenarios retain known truth, point bias, observed coverage, Wilson intervals, width and source-cell oracle diagnostic; no measured-data calibration claim. |
 | DATA-010 | The candidate shall be compared descriptively on measured physical phantom RF. | PICMUS file hash, angle indices, reconstruction settings, fixed cyst ROIs and histogram/eCDF point estimates are stored; no reference truth or confidence interval inferred. |
+
+### v0.16 measured-RF transfer
+
+| ID | Requirement | Acceptance |
+|---|---|---|
+| MET-015 | The eCDF single-crossing assumption shall be inspected with predeclared finite-bin sensitivities and a known single-crossing finite-sample control. | Rank bins 16/32/64 and sign changes are retained per ROI; sample-count-matched IID Rayleigh controls record 100 replicates and 5/50/95 percentiles without interpreting signs as population topology. |
+| MET-016 | Directional texture on fixed measured-image background ROIs shall be reported without turning decorrelation into independent sample counts. | Pair-inside-mask log-envelope Pearson curves, pair counts, grid spacing and 1/e lags are retained; a separate phantom homogeneous-speckle control is shown; no automatic bootstrap block choice. |
+| DATA-011 | Measured transfer shall retain acquisition scope and ROI selection provenance. | Two distinct EPFL volunteers, PICMUS cross-section and one physical phantom retain hashes, selected angles, probe/platform where available, ROI geometry and selection source; PICMUS subject independence is not presumed. |
 
 ## Quality attributes
 

@@ -67,7 +67,6 @@ Fantom dosyası indirilmemişse `--phantom-path` olmadan yalnızca sentetik
 deney çalışır. [Üretilen tablo ve grafik](../artifacts/ecdf_study/README.md),
 [tüm alan kayıtları](../artifacts/ecdf_study/metrics.json).
 
-Sonraki doğrulama gereksinimi: gerçek görüntülerde bağıntı ölçeğini bağımsız
-kayıtlarda kestirmek ve çoklu yoğunluk kesişimi olasılığını incelemek. Bunun
-için ek insan/fantom kayıtları ve önceden dondurulmuş bir değerlendirme
-protokolü gerekir; bu sürüm böyle bir kalibrasyon iddiası taşımaz.
+Gerçek RF üzerinde ilk duyarlılık takibi [v0.16 aktarım raporunda](ecdf-transfer-tr.md)
+yapıldı. Bu çalışma da nüfus düzeyinde bir kalibrasyon veya geçerli %95 aralık
+oluşturmadı.

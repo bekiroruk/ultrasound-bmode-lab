@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ultrasound-bmode-lab"
-version = "0.15.0"
+version = "0.16.0"
 description = "Measured-RF ultrasound beamforming, phantom validation, quality metrics, and acceleration."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -50,6 +50,7 @@ ultrasound-sequence = "ultrasound_bmode.sequence_cli:main"
 ultrasound-native-profile = "ultrasound_bmode.native_profile_cli:main"
 ultrasound-rayleigh-coverage = "ultrasound_bmode.rayleigh_coverage_cli:main"
 ultrasound-ecdf-study = "ultrasound_bmode.ecdf_study_cli:main"
+ultrasound-ecdf-transfer = "ultrasound_bmode.ecdf_transfer_cli:main"
 
 
 [tool.setuptools.packages.find]

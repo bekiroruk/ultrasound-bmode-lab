@@ -23,6 +23,12 @@ are present and verified.
 
 ## Open risk work
 
+- v0.16 transfer shows that fine rank bins produce apparent multiple density
+  sign changes even in a known single-crossing synthetic control. Anatomical
+  structures in human background annuli prolong spatial texture. Neither
+  diagnostic can validate the one-crossing assumption, estimate effective
+  independent samples, or select a calibrated interval/block size. Separate
+  homogeneous ROI policy and external acquisitions are needed.
 - v0.15's bin-free point metric can understate multi-crossing gCNR. The
   mathematically conservative independence-aware interval is uninformative
   (`[0,1]`) for the small synthetic source-cell sample, while applying its

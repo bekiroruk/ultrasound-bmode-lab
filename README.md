@@ -28,6 +28,17 @@ without changing its numerical result.
 
 ## Evidence at a glance
 
+**v0.16 measured-RF transfer:** the eCDF assumption and directional texture were
+checked on two distinct EPFL carotid volunteers, PICMUS carotid cross-section,
+and PICMUS physical phantom. At 64 pooled-rank bins, EPFL displayed **13–15**
+empirical density-difference sign changes, but a sample-count-matched *true
+single-crossing* Rayleigh control produced comparably many. The phantom
+homogeneous-speckle control had **0.280 mm axial / 0.303 mm lateral** 1/e texture
+lags; human annuli were much more heterogeneous. These diagnostics do **not**
+establish population crossing topology, independent-pixel spacing, or a 95%
+interval. [Measured transfer report](docs/ecdf-transfer-tr.md). Reproduce with
+`ultrasound-ecdf-transfer` after installing the measured datasets.
+
 **v0.15 bin-free follow-up:** a one-threshold eCDF contrast estimate is now audited
 on 200 independently generated fields per scenario and a measured PICMUS physical
 phantom. In the correlated synthetic case, its point-estimate bias was **+0.114**
@@ -79,7 +90,7 @@ Reproduce with `ultrasound-rayleigh-coverage --seed 20261003`.
 | Exploratory analytic lateral FWHM, F/0.8 | **0.572 mm** — 11 angles; defaults unchanged |
 | Offline sequence playback | **19.29 ms median / 22.85 ms p95**, 256×128 analytic cubic, 200 frames, 8 threads |
 | C++ measured-data equivalence | **9 checks passed**; linear/cubic, 11/75 angles and SWE checkpoints |
-| Automated tests | **119 tests + 169 subtests passed locally**; native C++ is built in CI |
+| Automated tests | **123 tests + 169 subtests passed locally**; native C++ is built in CI |
 
 Runtimes are hardware-dependent single-host measurements. Image metrics compare normalized
 display images and are research evidence, not clinical-performance claims.

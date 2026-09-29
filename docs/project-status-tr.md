@@ -1,6 +1,16 @@
 # Ultrasound B-mode Lab — proje özeti
 
-## Güncel araştırma notu — v0.15
+## Güncel araştırma notu — v0.16
+
+[Gerçek RF eCDF ve uzamsal doku aktarımı](ecdf-transfer-tr.md) iki ayrı EPFL
+gönüllüsü, PICMUS karotid kesiti ve fiziksel fantom üzerinde tamamlandı.
+EPFL'de ince sıra bölmelerinde çok işaret değişimi görüldü; gerçek dağılımları
+tek-kesişimli olan eş-örneklemli sentetik kontrol de benzer değişimler üretti.
+Fantomun homojen speckle kontrolü yaklaşık 0,28/0,30 mm 1/e doku ölçeği
+verdi. İnsan halkaları heterojendir; bu sayılar bağımsız örnek sayısına
+veya güven aralığı kalibrasyonuna dönüştürülmedi.
+
+## Önceki araştırma notu — v0.15
 
 [Bölmesiz eCDF deneyi](ecdf-audit-tr.md) ve ölçülmüş PICMUS fantom
 karşılaştırması tamamlandı. Tek eşikli eCDF ölçüsü sentetik bağıntılı
