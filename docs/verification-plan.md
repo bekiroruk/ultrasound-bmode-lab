@@ -155,3 +155,17 @@ Numba/C++. This removes float32 FFT real-component round-off exposed by high-amp
 data. High-amplitude native fixtures and measured sequence comparisons cover the regression.
 Historical quality artifacts used Numba for measured reconstruction and are retained,
 not relabeled as rerun results.
+
+## v0.14 model-assumption stress test
+
+The [Rayleigh coverage report](rayleigh-coverage-tr.md) connects
+`MET-012` to `test_rayleigh_coverage.py` and three seeded experiment artifacts.
+Analytic overlap is checked against numerical integration and large-sample MLE
+convergence. The final independent seed uses 200 fields/scenario, 300 resamples
+per interval, and records both percentile and basic coverage. IID Rayleigh
+pixel bootstrap reached 96%, aligned correlated tiles 89%, and lognormal
+stress 45%. These are measurements, not acceptance of a calibrated general
+interval. The previous 64-bin measured-image implementation remains unchanged.
+
+Local v0.14 run: **113 tests and 169 subtests passed**; Ruff and Git whitespace
+checks passed. The generated numerical summaries and figure were inspected.

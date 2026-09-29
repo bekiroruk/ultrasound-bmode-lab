@@ -1,6 +1,6 @@
 # Software requirements specification
 
-Status: research baseline, revision 11 (coverage audit, RF sequence and native prototype)
+Status: research baseline, revision 12 (Rayleigh-model coverage stress test)
 
 This specification defines verifiable behavior for the ultrasound B-mode laboratory. The
 software is educational/research software and is not intended for diagnosis, treatment,
@@ -67,6 +67,12 @@ channel files remain outside Git.
 | PERF-009 | Profile sequential frames without cross-frame cache. | All stored frames processed; raw latencies/post-frame RSS retained; warmup separated; unknown acquisition rate not inferred. |
 | ALG-018 | Native linear/cubic focusing shall preserve real/analytic reference results. | Float32/64, non-divisible batches; RF rtol=1e-5/atol=1e-7, B-mode atol=1e-4 dB; metadata/dimensions validated before ABI entry. |
 | PORT-001 | Provide an offline evidence viewer with scope limits. | Six embedded figures and accessible tabs; viewing needs no raw data/network; precomputed/non-clinical scope displayed. |
+
+### v0.14 conditional model experiment
+
+| ID | Requirement | Acceptance |
+|---|---|---|
+| MET-012 | Rayleigh-model gCNR candidate shall expose its distribution assumption and be compared to known truth on independent evaluation seeds. | Analytical overlap is checked against numerical density integration; IID, spatial dependence and misspecified lognormal scenarios report percentile/basic coverage, Wilson intervals and bias. The production histogram metric is not replaced. |
 
 ## Quality attributes
 

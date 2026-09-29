@@ -1,5 +1,13 @@
 # Ultrasound B-mode Lab — proje özeti
 
+## Güncel araştırma notu — v0.14
+
+[gCNR belirsizlik takibi](rayleigh-coverage-tr.md) tamamlandı. Rayleigh
+varsayımı altında yeni tahmin bağımsız alanlarda %96 kapsamaya ulaştı; gerçek
+4×4 bağımlılığa hizalanan bloklarda son bağımsız kontrolde %89, lognormal
+dağılımda %45 kaldı. Genel bir kalibrasyon elde edilmedi. Ölçülmüş görüntü
+ölçütü ve araştırma portföyünün v0.13 sonuçları değiştirilmedi.
+
 ## Güncel durum — v0.13
 
 Son dört portföy adımı tamamlandı: kontrollü kapsama deneyi, 200 gerçek RF karelik

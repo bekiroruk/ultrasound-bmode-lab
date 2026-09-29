@@ -23,6 +23,10 @@ are present and verified.
 
 ## Open risk work
 
+- v0.14 Rayleigh-model testing reduced estimator bias in its own generating model,
+  but aligned correlated tiles reached only 89% and non-Rayleigh data 45% on the
+  final independent seed. Do not substitute its intervals for measured-image
+  inference without separately validating the distribution and correlation model.
 - Validate on more subjects, probes, frequencies, and vendors.
 - Extend the completed homogeneous sound-speed sweep with calibration and aberration experiments.
 - Calibrate the conditional spatial-tile intervals; separate ROI/tile-origin sensitivity has

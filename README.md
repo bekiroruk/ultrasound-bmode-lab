@@ -28,6 +28,15 @@ without changing its numerical result.
 
 ## Evidence at a glance
 
+**v0.14 uncertainty follow-up:** a model-assisted Rayleigh gCNR estimator and spatial
+intervals were evaluated on a new, independently seeded synthetic validation set.
+IID Rayleigh coverage was **96%**; known 4×4 correlated tiles were **89%** even when
+block alignment was supplied; non-Rayleigh lognormal data were **45%**. The
+basic-bootstrap interval did not repair those failures. This is a
+[diagnostic report](docs/rayleigh-coverage-tr.md), **not a calibrated general
+confidence interval**. The measured-image 64-bin metric and default pipeline are unchanged.
+Reproduce with `ultrasound-rayleigh-coverage --seed 20261003`.
+
 **v0.13 portfolio milestone:** all four closing packages are implemented:
 [coverage audit](artifacts/coverage/README.md),
 [200-frame measured RF playback](artifacts/sequence/README.md),
@@ -60,7 +69,7 @@ without changing its numerical result.
 | Exploratory analytic lateral FWHM, F/0.8 | **0.572 mm** — 11 angles; defaults unchanged |
 | Offline sequence playback | **19.29 ms median / 22.85 ms p95**, 256×128 analytic cubic, 200 frames, 8 threads |
 | C++ measured-data equivalence | **9 checks passed**; linear/cubic, 11/75 angles and SWE checkpoints |
-| Automated tests | **110 passed + 165 subtests locally**; native C++ is now built in CI |
+| Automated tests | **113 tests + 169 subtests passed locally**; native C++ is built in CI |
 
 Runtimes are hardware-dependent single-host measurements. Image metrics compare normalized
 display images and are research evidence, not clinical-performance claims.
