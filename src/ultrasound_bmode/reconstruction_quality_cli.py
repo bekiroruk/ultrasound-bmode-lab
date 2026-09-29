@@ -74,7 +74,8 @@ def run_quality_comparison(
         "limitations": (
             "Reference similarity is not ground-truth or clinical accuracy. Analytic RF is not "
             "baseband IQ. No denoising, sharpening, registration, or contrast optimization. "
-            "CUDA and native C++ paths remain legacy real-RF only."
+            "CUDA remains legacy real-RF only. C++ analytic support is separately verified "
+            "by the native-profile study, not this report."
         ),
         "results": [],
     }

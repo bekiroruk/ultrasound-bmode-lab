@@ -1,6 +1,6 @@
 # Software requirements specification
 
-Status: research baseline, revision 10 (ROI placement and tile-origin sensitivity)
+Status: research baseline, revision 11 (coverage audit, RF sequence and native prototype)
 
 This specification defines verifiable behavior for the ultrasound B-mode laboratory. The
 software is educational/research software and is not intended for diagnosis, treatment,
@@ -57,6 +57,16 @@ channel files remain outside Git.
 | SAFE-001 | Every public-facing description shall identify the software as non-clinical. | README and lifecycle documentation contain the intended-use limitation. |
 | MET-009 | Analytic ROI comparisons shall use a single reference-selected ROI and paired spatial-tile resampling on identical physical grids. | 11/75-angle legacy/analytic-linear/analytic-cubic results retain 1/4/8/16-pixel block sensitivity, 500 accepted draws, paired deltas, support/rejection counts and conditional-uncertainty limitations; clipped or inadequately supported ROIs fail. |
 | MET-010 | ROI and tile-origin sensitivity shall separate placement effects from conditional resampling intervals without selecting an optimum. | Two measured human acquisitions retain ten fixed conditions each, explicit ROI provenance, paired linear/cubic 11/full metrics and hashes. Origin shifts preserve masks and point estimates; invalid origins fail; ROI ranges are not labeled confidence intervals. |
+
+## v0.13 closing requirements
+
+| ID | Requirement | Acceptance |
+|---|---|---|
+| MET-011 | Audit percentile intervals against known population metrics. | Rayleigh contrast/CNR/gCNR truth, independent field seeds, coverage, Wilson intervals and bias retained; no automatic calibration claim. |
+| DATA-009 | Read supported single-plane-wave RF sequences lazily. | One-frame access; scalar metadata/planar geometry checks; initial time = channel initial time + wave delay; bounds and close tested; unsupported IQ/wave geometry rejected. |
+| PERF-009 | Profile sequential frames without cross-frame cache. | All stored frames processed; raw latencies/post-frame RSS retained; warmup separated; unknown acquisition rate not inferred. |
+| ALG-018 | Native linear/cubic focusing shall preserve real/analytic reference results. | Float32/64, non-divisible batches; RF rtol=1e-5/atol=1e-7, B-mode atol=1e-4 dB; metadata/dimensions validated before ABI entry. |
+| PORT-001 | Provide an offline evidence viewer with scope limits. | Six embedded figures and accessible tabs; viewing needs no raw data/network; precomputed/non-clinical scope displayed. |
 
 ## Quality attributes
 

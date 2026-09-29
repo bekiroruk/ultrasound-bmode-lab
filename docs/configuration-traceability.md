@@ -9,6 +9,7 @@
 | contrast | `PICMUS_experiment_contrast_speckle.uff` | 145,518,504 | `26bbfbbb702e90fe4fa9f1ab7d7fc065` | Physical CIRS cyst and speckle metrics |
 | resolution | `PICMUS_experiment_resolution_distortion.uff` | 145,518,524 | `e8a4487993222f28458aa88259345440` | Physical CIRS point-target and distortion metrics |
 | alpinion | `Alpinion_L3-8_CPWC_hypoechoic.uff` | 48,274,300 | `1b335b36510a2e3406a9f5d575614bdc` | Cross-platform phantom reconstruction |
+| swe-sequence | `SWE_L7_type_I.uff` | 170,420,088 | `6add85ab6559be4f1e9bf2b4b4ea9c95` | 200-frame device playback; specimen unspecified |
 
 All files come from Zenodo record `10.5281/zenodo.20261898` and are stored under ignored
 `data/raw/`. `scripts/download_picmus.py` is the controlled retrieval interface.
@@ -26,7 +27,7 @@ retrieval interface is `scripts/download_epfl.py`; it also validates member CRC3
 - Source revision: Git commit SHA.
 - Python compatibility baseline: 3.10 and 3.12 in GitHub Actions.
 - Core dependencies: NumPy, SciPy, Matplotlib, h5py, psutil.
-- Optional compiled backend: Numba/LLVM.
+- Optional compiled backends: Numba/LLVM and C++17/OpenMP (v2 C ABI).
 - Parameters: CLI arguments plus values embedded in generated JSON.
 - Evidence: versioned PNG, JSON, and CSV files under `artifacts/`.
 
@@ -43,3 +44,17 @@ geometry, or a metric formula requires:
 3. comparison with the preceding JSON result;
 4. explanation of unexpected numerical or visual changes; and
 5. review of related entries in `risk-management.md`.
+
+## v0.13 artifact commands
+
+- `ultrasound-coverage --trials 200 --samples 300`: known-truth envelope audit.
+- `ultrasound-sequence`: measured SWE file; set `NUMBA_NUM_THREADS=8` before Python
+  for the recorded host configuration.
+- `ultrasound-native-profile --repeats 5`: fresh sequential workers, 8 threads,
+  batch 8, F/1.5, 11/75 angles, linear/cubic. JSON includes source/binary hashes.
+- `python scripts/build_portfolio.py`: offline demo from committed PNG/JSON;
+  does not recalculate experiments.
+
+Windows native build: MSVC 19.44.35228, OpenMP 2.0, Release. Shared libraries stay
+Git-ignored and are rebuilt per host; Linux CI builds the same CMake source. Byte
+hashes describe experiment files; checkout line-ending normalization can alter hashes.

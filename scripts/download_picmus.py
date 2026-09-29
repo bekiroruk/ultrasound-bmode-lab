@@ -9,6 +9,11 @@ from urllib.request import urlopen
 
 RECORD_API = "https://zenodo.org/api/records/20261898/files/{filename}/content"
 DATASETS = {
+    "swe-sequence": (
+        "SWE_L7_type_I.uff",
+        170_420_088,
+        "6add85ab6559be4f1e9bf2b4b4ea9c95",
+    ),
     "carotid": (
         "PICMUS_carotid_cross.uff",
         76_705_680,

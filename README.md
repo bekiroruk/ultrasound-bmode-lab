@@ -28,9 +28,16 @@ without changing its numerical result.
 
 ## Evidence at a glance
 
+**v0.13 portfolio milestone:** all four closing packages are implemented:
+[coverage audit](artifacts/coverage/README.md),
+[200-frame measured RF playback](artifacts/sequence/README.md),
+[C++ verification](artifacts/native_profile/README.md), and an
+[offline demo](artifacts/portfolio/README.md).
+[Türkçe proje ve mülakat anlatımı](docs/portfolio-tr.md).
+
 | Item | Measured result |
 |---|---:|
-| Real acquisitions | **4 human carotid + 3 physical phantom scans** |
+| Real acquisitions | **4 human carotid + 3 physical phantom scans**, plus a 200-frame SWE device sequence (specimen unspecified) |
 | Independent EPFL volunteers | **2** — public volunteer IDs 005 and 008 |
 | Probe/platform coverage | L11/L11-4v, GE 9L-D, and Alpinion L3-8 |
 | Raw carotid tensor | 75 transmissions × 128 elements × 1,536 RF samples |
@@ -51,10 +58,52 @@ without changing its numerical result.
 | Analytic phantom median lateral FWHM, 11 angles | **0.652 mm** (legacy: 0.599 mm; wider) |
 | Analytic phantom median axial FWHM, 11 angles | **0.577 mm** (legacy: 0.679 mm; narrower) |
 | Exploratory analytic lateral FWHM, F/0.8 | **0.572 mm** — 11 angles; defaults unchanged |
-| Automated tests | **99 passing** with local datasets and acceleration extra |
+| Offline sequence playback | **19.29 ms median / 22.85 ms p95**, 256×128 analytic cubic, 200 frames, 8 threads |
+| C++ measured-data equivalence | **9 checks passed**; linear/cubic, 11/75 angles and SWE checkpoints |
+| Automated tests | **110 passed + 165 subtests locally**; native C++ is now built in CI |
 
 Runtimes are hardware-dependent single-host measurements. Image metrics compare normalized
 display images and are research evidence, not clinical-performance claims.
+
+## v0.13: closing the research portfolio
+
+The uncertainty audit uses **200 independent synthetic envelope fields per scenario**,
+not simulated patient RF. IID gCNR interval coverage is only 65.5–70%; in the deliberately
+correlated-tile scenario it is 0/200. Histogram bias and dependence invalidate a blanket
+“95% confidence” interpretation. Completing this audit does not calibrate the intervals.
+
+A lazy reader processes **200 × 1 × 128 × 1,664** measured SWE RF samples, one frame
+at a time, accounting for transmit-wave delay. Acquisition frame rate and specimen identity
+are not established. **51.27 processing fps** is offline timed-work throughput, not a
+live-device deadline guarantee. Post-frame RSS reaches 194.22 MiB; the last/first 25-frame
+means differ by +1.92 MiB. Post-frame sampling does not prove absence of memory leaks.
+
+The optional **C++17/OpenMP** focusing prototype passes all measured parity checks but is
+**slower than Numba** on this host. Hilbert and display processing remain Python/SciPy.
+No GPU execution or embedded deployment is claimed; linear remains the default.
+
+Open `artifacts/portfolio/index.html` locally for the six-tab offline demo. Its scientific
+figures are embedded: no server, network or raw data is needed. GitHub displays HTML source
+rather than hosting this demo.
+
+```bash
+python -m pip install -e ".[dev,accelerated]"
+python scripts/download_picmus.py --dataset carotid
+python scripts/download_picmus.py --dataset swe-sequence
+ultrasound-coverage --trials 200 --samples 300
+ultrasound-sequence
+cmake -S native -B native/build -DCMAKE_BUILD_TYPE=Release
+cmake --build native/build --config Release
+ultrasound-native-profile --repeats 5
+python scripts/build_portfolio.py
+python -m pytest
+```
+
+Set `NUMBA_NUM_THREADS=8` before Python for the recorded sequence setting
+(PowerShell: `$env:NUMBA_NUM_THREADS='8'`; shell: `export NUMBA_NUM_THREADS=8`).
+Native-profile workers set their own thread count. CMake and a C++17 compiler are prerequisites;
+the Windows record uses MSVC 19.44.35228 / OpenMP 2.0. Historical folders retain their
+original experiments; do not mix hardware/runtime baselines across releases.
 
 ## v0.12: ROI placement and block-origin sensitivity
 

@@ -1,5 +1,24 @@
 # Algorithm design description
 
+## v0.13 implementation notes
+
+Analytic RF = original real RF + Hilbert quadrature. The NumPy reference explicitly
+restores original real samples after FFT-based Hilbert generation, avoiding float32
+round-off and matching the Numba/native definition.
+
+The native v2 C ABI focuses float64 angle batches using linear or Catmull-Rom cubic
+interpolation and OpenMP lateral parallelism. Python validates geometry/samples, produces
+quadrature, weights partial batches by angle count and performs envelope/log compression.
+This is a focusing prototype, not a standalone real-time imaging stack.
+
+The single-plane-wave UFF reader accesses HDF5 one frame at a time. Effective initial
+time is channel initial time plus wave delay. Unsupported IQ, nonplanar geometry and
+mismatched propagation speeds are rejected. Frames never share an analytic cache.
+
+The Rayleigh-envelope coverage audit compares intervals to known population values.
+It retains histogram-estimator bias rather than redefining “truth” to match the biased
+estimate. Failed nominal coverage is reported; no automatic block-size tuning is introduced.
+
 ## Architecture
 
 ```text

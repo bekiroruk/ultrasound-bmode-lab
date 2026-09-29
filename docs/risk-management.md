@@ -26,7 +26,19 @@ are present and verified.
 - Validate on more subjects, probes, frequencies, and vendors.
 - Extend the completed homogeneous sound-speed sweep with calibration and aberration experiments.
 - Calibrate the conditional spatial-tile intervals; separate ROI/tile-origin sensitivity has
-  been measured on two acquisitions, but joint interactions, observer selection and
+  been measured on two acquisitions. The v0.13 known-truth audit found undercoverage,
+  including 0/200 gCNR coverage in the correlated-tile scenario; intervals remain
+  exploratory, not calibrated 95% confidence. Joint interactions, observer selection and
   acquisition-level/between-subject uncertainty remain unmeasured.
 - Define clinical users, intended purpose, safety classification, benefit-risk criteria, and
   post-market controls before any device-oriented interpretation.
+
+## v0.13 controls
+
+- SWE L7 is not labeled as patient data; specimen and acquisition rate are unknown.
+  Offline timing cannot establish a live-device deadline.
+- Python validates geometry, dimensions, dtype and finite selected samples before ABI entry;
+  C++ checks sample-position range before integer conversion. Tests cover cubic stencil edges.
+- Sampled RSS cannot prove leak freedom. No C++/GPU speedup is inferred from language or
+  hardware presence; the measured C++ prototype is slower than Numba.
+- Completing a coverage audit is not passing a calibration criterion.

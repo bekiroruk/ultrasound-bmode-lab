@@ -196,6 +196,10 @@ def beamform_plane_wave(
         hilbert(real_angle_data, axis=-1)
         if analytic or method in {"cf", "pcf", "mvdr"} else real_angle_data
     )
+    if np.iscomplexobj(angle_data):
+        # Analytic RF = original real RF + i * Hilbert quadrature. FFT round-off
+        # must not replace the measured real samples (also matches native/Numba).
+        angle_data.real = real_angle_data
     output_dtype = complex if np.iscomplexobj(angle_data) else float
     focused_image = np.zeros((z_axis_m.size, x_axis_m.size), dtype=output_dtype)
 

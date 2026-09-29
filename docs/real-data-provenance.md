@@ -80,3 +80,24 @@ The EPFL subset requires the additional citation:
 
 > R. Viñals and J.-P. Thiran, “Deep Learning-based Inpainting for Sparse Arrays in Ultrafast
 > Ultrasound Imaging,” IEEE Transactions on Computational Imaging, 2025.
+
+## SWE L7 sequence (v0.13)
+
+The [USTB catalog](https://unioslo.github.io/USTB/datasets.html) lists
+`SWE_L7_type_I.uff` as shear-wave elastography data, retrieved here from the pinned
+[Zenodo archive](https://zenodo.org/records/20261898), CC BY 4.0. It is used for B-mode
+playback, not shear-wave speed estimation. Credit the archive and contributors listed there.
+
+- Bytes: 170,420,088; MD5 `6add85ab6559be4f1e9bf2b4b4ea9c95`.
+- SHA-256: `21956c2dcb75d8d907418dd5f2144156b363f259b24fed9fb8fcba7d5fa1035b`.
+- Tensor: 200 frames × 1 transmit × 128 elements × 1664 float32 RF samples.
+- Sampling: 20,834,666 Hz; speed: 1540 m/s; azimuth/elevation: zero.
+- Channel initial time ≈ 1.920 µs; wave delay ≈ −1.648 µs.
+- No specimen, subject identity, clinical label or acquisition frame rate is established.
+  Do not add it to the human-subject count or infer a vendor.
+- Effective initial time follows the sign in
+  [USTB DAS](https://github.com/unioslo/USTB/blob/master/%2Bmidprocess/das.m):
+  transmit distance/c − wave delay + receive distance/c − channel initial time.
+
+Raw RF remains Git-ignored. Derived figures and reports distinguish human recordings,
+physical phantoms, specimen-unspecified device data and synthetic coverage fields.

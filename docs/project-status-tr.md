@@ -1,5 +1,17 @@
 # Ultrasound B-mode Lab — proje özeti
 
+## Güncel durum — v0.13
+
+Son dört portföy adımı tamamlandı: kontrollü kapsama deneyi, 200 gerçek RF karelik
+dosya oynatma testi, C++ analitik/kübik odaklama ve çevrimdışı demo.
+[Teslim özeti ve mülakat anlatımı](portfolio-tr.md) güncel giriş noktasıdır.
+
+Kapsama deneyi aralıkların kalibre olmadığını gösterdi; C++ bu hostta Numba'dan daha
+yavaş çıktı. Yeni SWE L7 dizisi 200 × 1 × 128 × 1664 boyutundadır; doğrulanmış insan
+verisi olarak sayılmaz. Önceki dört insan + üç fantom kaydına ek ayrı bir cihaz dizisidir.
+İşleme ortancası 19,29 ms; p95 22,85 ms. Klinik veya canlı cihaz iddiası yoktur.
+Önceki sürüm bölümleri tarihsel deney kayıtlarıdır.
+
 Bu proje, ultrason cihazlarından alınmış açık erişimli RF kanal kayıtlarından B-mod görüntü
 oluşturan ve algoritma değişikliklerini tekrarlanabilir deneylerle değerlendiren bir araştırma
 yazılımıdır. Ana çalışma Python/NumPy ve hızlandırılmış Numba CPU üzerinde yürür. Görüntü

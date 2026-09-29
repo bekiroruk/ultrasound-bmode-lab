@@ -4,6 +4,12 @@ This lightweight plan demonstrates requirements-driven algorithm development. It
 
 ## Intended use and boundaries
 
+Current closing-package evidence: [coverage](../artifacts/coverage/README.md),
+[sequence playback](../artifacts/sequence/README.md),
+[native verification](../artifacts/native_profile/README.md), and
+[demo](../artifacts/portfolio/README.md). Earlier records retain their original
+version scope; v0.13 adds offline sequencing and native focusing, not device deployment.
+
 The software reconstructs educational B-mode images from synthetic data and public,
 de-identified research acquisitions. It is not intended to control hardware, support diagnosis,
 make a clinical claim, or process data in a care-delivery workflow.
@@ -127,3 +133,25 @@ all have at least nine target tiles and no rejected resamples. PICMUS baseline p
 contrast/CNR/gCNR point estimates and intervals match the v0.11 8×8 study exactly. Three of
 four gCNR point differences change sign across ROI choices; all 16 baseline/origin gCNR
 intervals contain zero. This is sensitivity evidence, not calibrated inference or equivalence.
+
+## v0.13 closing verification
+
+| Requirement | Evidence | Result / limitation |
+|---|---|---|
+| MET-011 | `test_coverage.py`; 400 independent envelope fields, 300 resamples each/block | Distribution-integral truth/report tests pass. gCNR coverage fails a 95% interpretation; no certification of calibration. |
+| DATA-009 | `test_sequence.py`, `test_final_reports.py`; SWE L7 metadata | One-frame reads, signed delay, invalid wave/metadata/bounds and lifecycle checks. |
+| PERF-009 | `artifacts/sequence/metrics.json` | 200 stored frames; NumPy equivalence on 0/100/199. RSS is post-frame sampling, not peak allocation. |
+| ALG-018 | `test_native_backend.py`; `artifacts/native_profile/metrics.json` | Nine measured comparisons; dtype/mode/interpolation/count subcases plus boundary/invalid-input checks. |
+| PORT-001 | `test_final_reports.py`; initial browser page inspection | Six embedded figures and tab/panel structure checked. Final interactive browser replay was unavailable; no claim of full browser E2E coverage. |
+
+Local configuration: Python 3.12, measured datasets, Numba, Release MSVC 19.44.35228 /
+OpenMP 2.0. Native tests are built and exercised in CI rather than skipped for an absent
+library; measured-dataset tests may skip because raw acquisitions are not redistributed.
+
+Final local run: **110 tests passed, 165 subtests passed**; Ruff and Git whitespace checks passed.
+
+NumPy now preserves original real RF after Hilbert quadrature generation, matching
+Numba/C++. This removes float32 FFT real-component round-off exposed by high-amplitude SWE
+data. High-amplitude native fixtures and measured sequence comparisons cover the regression.
+Historical quality artifacts used Numba for measured reconstruction and are retained,
+not relabeled as rerun results.

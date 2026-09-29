@@ -1,0 +1,345 @@
+{
+  "dataset": "PICMUS_carotid_cross.uff",
+  "sha256": "50bd73fded4d31c5c24f1f1adec2f8bc7483931fc95c7816a59d00b778aef6bd",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "processor": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel",
+  "python": "3.12.3",
+  "native_build": {
+    "library": "ultrasound_native.dll",
+    "openmp": true,
+    "binary_sha256": "6c6c7531eb80da24f6fcdf29121143557bcb8b4e1cb24bd2c56a5b2b8cbf46fb"
+  },
+  "dependencies": {
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "numba": "0.67.0",
+    "psutil": "7.2.2"
+  },
+  "source_sha256": {
+    "native/beamformer.cpp": "3fd19acd3cb632756388d4a650c622ae4c8fb6451033ee794a7202836068a08a",
+    "native/CMakeLists.txt": "a32022dc177507591427c0dbe29c638a5a86a32ae635f570f5e7b49498b39e71",
+    "src/ultrasound_bmode/native_backend.py": "9998e2b5297c7b9bf52f05f480eeeaf1ea4d8ad22b6d1f3cc38bc351a4922a9c",
+    "src/ultrasound_bmode/real_data.py": "6da801e46e7e496d4cd78607b5377b7bb0ae736680bb1db0300cf9f1e8f41bf3",
+    "src/ultrasound_bmode/accelerated.py": "c4c64b57f2a2e4da21b9831e676c13a6a5b1f9fa7aba36b21fba2dbe8b6e2456"
+  },
+  "settings": {
+    "threads": 8,
+    "angle_batch_size": 8,
+    "analytic": true,
+    "f_number": 1.5,
+    "strides": [
+      2,
+      2
+    ],
+    "dynamic_range_db": 60,
+    "repeats": 5
+  },
+  "protocol": "Fresh subprocess per backend/interpolation/count, run sequentially. One full warmup excluded, then five timed full calls by default. Includes channel validation/selection, Hilbert quadrature, double conversion for C++, focusing and log compression; data load excluded. Eight Numba/OpenMP threads requested; C++ falls back to serial without OpenMP. Separate additional call samples process RSS every requested 2 ms; sampled lower bound, not allocation size. Warmup and retained allocator buffers affect baseline. No analytic cache. C++ focuses both components; preprocessing remains Python/SciPy. Not a fully native pipeline, live integration, GPU result, or universal speedup claim. Fixed process order is not counterbalanced; thermal/scheduler effects remain possible.",
+  "records": [
+    {
+      "warmup_full_call_seconds_excluded": 0.44700709998141974,
+      "timed_seconds": [
+        0.20942089997697622,
+        0.2113043999997899,
+        0.2296650999924168,
+        0.21449199999915436,
+        0.19152069999836385
+      ],
+      "median_seconds": 0.2113043999997899,
+      "minimum_seconds": 0.19152069999836385,
+      "maximum_seconds": 0.2296650999924168,
+      "median_fps": 4.732509119549779,
+      "rss_baseline_mib": 251.55859375,
+      "rss_sampled_peak_mib": 281.609375,
+      "rss_peak_above_baseline_mib": 30.05078125,
+      "rss_sample_count": 14,
+      "rss_requested_interval_seconds": 0.002,
+      "backend": "numba",
+      "interpolation": "linear",
+      "angle_count": 11,
+      "output_shape": [
+        305,
+        194
+      ]
+    },
+    {
+      "warmup_full_call_seconds_excluded": 0.37269049999304116,
+      "timed_seconds": [
+        0.34731410001404583,
+        0.3278872999944724,
+        0.34554549999302253,
+        0.35788999998476356,
+        0.2932402000296861
+      ],
+      "median_seconds": 0.34554549999302253,
+      "minimum_seconds": 0.2932402000296861,
+      "maximum_seconds": 0.35788999998476356,
+      "median_fps": 2.8939748890383252,
+      "rss_baseline_mib": 219.1015625,
+      "rss_sampled_peak_mib": 249.203125,
+      "rss_peak_above_baseline_mib": 30.1015625,
+      "rss_sample_count": 24,
+      "rss_requested_interval_seconds": 0.002,
+      "backend": "cpp",
+      "interpolation": "linear",
+      "angle_count": 11,
+      "output_shape": [
+        305,
+        194
+      ]
+    },
+    {
+      "warmup_full_call_seconds_excluded": 1.617179799999576,
+      "timed_seconds": [
+        1.2911432000109926,
+        1.2738704000366852,
+        1.3257193000172265,
+        1.3377420000033453,
+        1.3364063000190072
+      ],
+      "median_seconds": 1.3257193000172265,
+      "minimum_seconds": 1.2738704000366852,
+      "maximum_seconds": 1.3377420000033453,
+      "median_fps": 0.75430749177975,
+      "rss_baseline_mib": 251.9296875,
+      "rss_sampled_peak_mib": 282.00390625,
+      "rss_peak_above_baseline_mib": 30.07421875,
+      "rss_sample_count": 90,
+      "rss_requested_interval_seconds": 0.002,
+      "backend": "numba",
+      "interpolation": "linear",
+      "angle_count": 75,
+      "output_shape": [
+        305,
+        194
+      ]
+    },
+    {
+      "warmup_full_call_seconds_excluded": 2.191407799953595,
+      "timed_seconds": [
+        2.340686600015033,
+        2.352565200009849,
+        2.392541799985338,
+        2.4627152000321075,
+        2.9879131999914534
+      ],
+      "median_seconds": 2.392541799985338,
+      "minimum_seconds": 2.340686600015033,
+      "maximum_seconds": 2.9879131999914534,
+      "median_fps": 0.4179655293822362,
+      "rss_baseline_mib": 218.53125,
+      "rss_sampled_peak_mib": 248.60546875,
+      "rss_peak_above_baseline_mib": 30.07421875,
+      "rss_sample_count": 142,
+      "rss_requested_interval_seconds": 0.002,
+      "backend": "cpp",
+      "interpolation": "linear",
+      "angle_count": 75,
+      "output_shape": [
+        305,
+        194
+      ]
+    },
+    {
+      "warmup_full_call_seconds_excluded": 0.5020296000293456,
+      "timed_seconds": [
+        0.2727115000016056,
+        0.27429739997023717,
+        0.24744229996576905,
+        0.25520569999935105,
+        0.26396609999937937
+      ],
+      "median_seconds": 0.26396609999937937,
+      "minimum_seconds": 0.24744229996576905,
+      "maximum_seconds": 0.27429739997023717,
+      "median_fps": 3.7883652484252757,
+      "rss_baseline_mib": 251.57421875,
+      "rss_sampled_peak_mib": 269.609375,
+      "rss_peak_above_baseline_mib": 18.03515625,
+      "rss_sample_count": 18,
+      "rss_requested_interval_seconds": 0.002,
+      "backend": "numba",
+      "interpolation": "cubic",
+      "angle_count": 11,
+      "output_shape": [
+        305,
+        194
+      ]
+    },
+    {
+      "warmup_full_call_seconds_excluded": 0.3983138999901712,
+      "timed_seconds": [
+        0.39097700000274926,
+        0.35639239998999983,
+        0.3943921999889426,
+        0.38889190001646057,
+        0.39365840004757047
+      ],
+      "median_seconds": 0.39097700000274926,
+      "minimum_seconds": 0.35639239998999983,
+      "maximum_seconds": 0.3943921999889426,
+      "median_fps": 2.5576952096746566,
+      "rss_baseline_mib": 218.546875,
+      "rss_sampled_peak_mib": 248.703125,
+      "rss_peak_above_baseline_mib": 30.15625,
+      "rss_sample_count": 26,
+      "rss_requested_interval_seconds": 0.002,
+      "backend": "cpp",
+      "interpolation": "cubic",
+      "angle_count": 11,
+      "output_shape": [
+        305,
+        194
+      ]
+    },
+    {
+      "warmup_full_call_seconds_excluded": 2.0980014000087976,
+      "timed_seconds": [
+        1.7969400999718346,
+        1.6749772999901325,
+        1.68282280000858,
+        1.63319219998084,
+        1.7096302999998443
+      ],
+      "median_seconds": 1.68282280000858,
+      "minimum_seconds": 1.63319219998084,
+      "maximum_seconds": 1.7969400999718346,
+      "median_fps": 0.5942396311690699,
+      "rss_baseline_mib": 251.484375,
+      "rss_sampled_peak_mib": 281.5546875,
+      "rss_peak_above_baseline_mib": 30.0703125,
+      "rss_sample_count": 116,
+      "rss_requested_interval_seconds": 0.002,
+      "backend": "numba",
+      "interpolation": "cubic",
+      "angle_count": 75,
+      "output_shape": [
+        305,
+        194
+      ]
+    },
+    {
+      "warmup_full_call_seconds_excluded": 2.6576229999773204,
+      "timed_seconds": [
+        2.6160241999896243,
+        2.731251200020779,
+        2.67558260000078,
+        2.5254628999973647,
+        2.607018499984406
+      ],
+      "median_seconds": 2.6160241999896243,
+      "minimum_seconds": 2.5254628999973647,
+      "maximum_seconds": 2.731251200020779,
+      "median_fps": 0.3822594607511529,
+      "rss_baseline_mib": 218.73828125,
+      "rss_sampled_peak_mib": 248.78125,
+      "rss_peak_above_baseline_mib": 30.04296875,
+      "rss_sample_count": 163,
+      "rss_requested_interval_seconds": 0.002,
+      "backend": "cpp",
+      "interpolation": "cubic",
+      "angle_count": 75,
+      "output_shape": [
+        305,
+        194
+      ]
+    }
+  ],
+  "cpp_numba_agreement": [
+    {
+      "interpolation": "linear",
+      "angle_count": 11,
+      "rf_max_abs_error": 4.762367924484113e-15,
+      "bmode_max_abs_error_db": 1.724487219689763e-11,
+      "rf_rtol": 1e-05,
+      "rf_atol": 1e-07,
+      "bmode_atol_db": 0.0001,
+      "passed": true
+    },
+    {
+      "interpolation": "linear",
+      "angle_count": 75,
+      "rf_max_abs_error": 2.5078894352394e-15,
+      "bmode_max_abs_error_db": 8.952838470577262e-12,
+      "rf_rtol": 1e-05,
+      "rf_atol": 1e-07,
+      "bmode_atol_db": 0.0001,
+      "passed": true
+    },
+    {
+      "interpolation": "cubic",
+      "angle_count": 11,
+      "rf_max_abs_error": 2.082240681425761e-09,
+      "bmode_max_abs_error_db": 1.0862865643446185e-05,
+      "rf_rtol": 1e-05,
+      "rf_atol": 1e-07,
+      "bmode_atol_db": 0.0001,
+      "passed": true
+    },
+    {
+      "interpolation": "cubic",
+      "angle_count": 75,
+      "rf_max_abs_error": 6.816805072018113e-10,
+      "bmode_max_abs_error_db": 9.369380720158915e-06,
+      "rf_rtol": 1e-05,
+      "rf_atol": 1e-07,
+      "bmode_atol_db": 0.0001,
+      "passed": true
+    }
+  ],
+  "cpp_numpy_agreement": [
+    {
+      "interpolation": "linear",
+      "angle_count": 11,
+      "rf_max_abs_error": 1.1443916996305594e-16,
+      "bmode_max_abs_error_db": 9.947598300641403e-14,
+      "rf_rtol": 1e-05,
+      "rf_atol": 1e-07,
+      "bmode_atol_db": 0.0001,
+      "passed": true
+    },
+    {
+      "interpolation": "cubic",
+      "angle_count": 11,
+      "rf_max_abs_error": 1.1123893155135927e-16,
+      "bmode_max_abs_error_db": 9.237055564881302e-14,
+      "rf_rtol": 1e-05,
+      "rf_atol": 1e-07,
+      "bmode_atol_db": 0.0001,
+      "passed": true
+    }
+  ],
+  "sequence_dataset": {
+    "filename": "SWE_L7_type_I.uff",
+    "sha256": "21956c2dcb75d8d907418dd5f2144156b363f259b24fed9fb8fcba7d5fa1035b"
+  },
+  "sequence_cpp_numpy_agreement": [
+    {
+      "frame": 0,
+      "rf_max_abs_error": 9.097444676580534e-13,
+      "bmode_max_abs_error_db": 6.394884621840902e-14,
+      "rf_rtol": 1e-05,
+      "rf_atol": 1e-07,
+      "bmode_atol_db": 0.0001,
+      "passed": true
+    },
+    {
+      "frame": 100,
+      "rf_max_abs_error": 9.374856803373542e-13,
+      "bmode_max_abs_error_db": 4.263256414560601e-14,
+      "rf_rtol": 1e-05,
+      "rf_atol": 1e-07,
+      "bmode_atol_db": 0.0001,
+      "passed": true
+    },
+    {
+      "frame": 199,
+      "rf_max_abs_error": 5.084229945850415e-13,
+      "bmode_max_abs_error_db": 3.552713678800501e-14,
+      "rf_rtol": 1e-05,
+      "rf_atol": 1e-07,
+      "bmode_atol_db": 0.0001,
+      "passed": true
+    }
+  ]
+}
