@@ -7,7 +7,9 @@ import base64
 import hashlib
 import html
 import json
+from html.parser import HTMLParser
 from pathlib import Path
+from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -16,6 +18,70 @@ def evidence_bytes(path):
     """Make text hashes stable across Git LF/CRLF checkout policies."""
     payload = path.read_bytes()
     return payload.replace(b"\r\n", b"\n") if path.suffix in {".json", ".html"} else payload
+
+
+class PortfolioHTMLInspector(HTMLParser):
+    """Read-only structural check; this does not execute JavaScript."""
+
+    def __init__(self):
+        super().__init__()
+        self.tabs = []
+        self.panels = []
+        self.images = []
+        self.links = []
+
+    def handle_starttag(self, tag, attrs):
+        values = dict(attrs)
+        if values.get("role") == "tab":
+            self.tabs.append(values)
+        elif values.get("role") == "tabpanel":
+            self.panels.append(values)
+        if tag == "img":
+            self.images.append(values)
+        elif tag == "a":
+            self.links.append(values)
+
+
+def inspect_portfolio_html(page, folder, root, expected_figures):
+    """Validate offline markup, image payloads and local link targets."""
+    parser = PortfolioHTMLInspector()
+    parser.feed(page.decode("utf-8"))
+    if (len(parser.tabs) != expected_figures or len(parser.panels) != expected_figures
+            or len(parser.images) != expected_figures):
+        raise ValueError("portfolio tab, panel or image count mismatch")
+    tabs = {tab.get("id"): tab for tab in parser.tabs}
+    panels = {panel.get("id"): panel for panel in parser.panels}
+    if len(tabs) != expected_figures or len(panels) != expected_figures:
+        raise ValueError("portfolio tab or panel IDs are missing or duplicated")
+    if sum(tab.get("aria-selected") == "true" for tab in parser.tabs) != 1:
+        raise ValueError("portfolio must have exactly one selected tab")
+    for tab in parser.tabs:
+        panel = panels.get(tab.get("aria-controls"))
+        if panel is None or panel.get("aria-labelledby") != tab["id"]:
+            raise ValueError("portfolio tab and panel association mismatch")
+        if (tab.get("aria-selected") == "true") == ("hidden" in panel):
+            raise ValueError("portfolio selected/visible panel mismatch")
+    for image in parser.images:
+        source = image.get("src", "")
+        if not source.startswith("data:image/png;base64,") or not image.get("alt"):
+            raise ValueError("portfolio image is not an accessible embedded PNG")
+        payload = base64.b64decode(source.split(",", 1)[1], validate=True)
+        if not payload.startswith(b"\x89PNG\r\n\x1a\n") or not payload.endswith(
+            b"IEND\xaeB`\x82"
+        ):
+            raise ValueError("portfolio embedded PNG is incomplete")
+    for link in parser.links:
+        href = link.get("href", "")
+        parsed = urlsplit(href)
+        if parsed.scheme in {"https", "http"}:
+            continue
+        if parsed.scheme or not parsed.path:
+            raise ValueError("portfolio contains an unsupported local link")
+        target = (folder / parsed.path).resolve()
+        if not target.is_relative_to(root.resolve()) or not target.is_file():
+            raise ValueError(f"portfolio local link is missing: {href}")
+    if b"function showPanel(id)" not in page:
+        raise ValueError("portfolio tab interaction script is absent")
 
 
 def build_portfolio(root=ROOT):
@@ -176,7 +242,9 @@ document.querySelectorAll('[role=tab]').forEach((button, index, buttons) => {{
         "measured transfer, sequence and native-profile commands. "
         "`manifest.json` hashes the embedded evidence inputs and generated HTML; "
         "JSON/HTML hashes use LF-normalized bytes for cross-platform consistency. "
-        "Verify the saved package with `python scripts/build_portfolio.py --verify`. "
+        "Verify hashes, embedded PNGs, tab/panel wiring and local links with "
+        "`python scripts/build_portfolio.py --verify`. This is a static check, not "
+        "a browser interaction test. "
         "Supporting Markdown links work inside the repository checkout.\n",
         encoding="utf-8")
     return output / "index.html"
@@ -200,6 +268,8 @@ def verify_portfolio(root=ROOT):
         if (hashlib.sha256(payload).hexdigest() != source["sha256"]
                 or len(payload) != source["canonical_bytes"]):
             raise ValueError(f"portfolio source checksum mismatch: {relative}")
+    inspect_portfolio_html(page, root / "artifacts/portfolio", root,
+                           manifest["embedded_figure_count"])
     return len(manifest["sources"])
 
 
@@ -208,6 +278,6 @@ if __name__ == "__main__":
     parser.add_argument("--verify", action="store_true", help="check the saved evidence manifest")
     args = parser.parse_args()
     if args.verify:
-        print(f"Verified {verify_portfolio()} evidence sources and offline HTML")
+        print(f"Verified {verify_portfolio()} evidence sources, offline HTML and local links")
     else:
         print(build_portfolio())

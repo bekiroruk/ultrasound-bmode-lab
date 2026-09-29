@@ -45,7 +45,7 @@ class FinalReportTests(unittest.TestCase):
         spec = importlib.util.spec_from_file_location("portfolio", root / "scripts/build_portfolio.py")
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
-        # A temporary project uses tiny image placeholders; parsing, not image rendering, is tested.
+        # A temporary project reuses one real PNG; no browser or RF data is needed.
         with tempfile.TemporaryDirectory() as directory:
             target = Path(directory)
             for relative in ("sequence/metrics.json", "native_profile/metrics.json",
@@ -61,7 +61,16 @@ class FinalReportTests(unittest.TestCase):
                              "ecdf_study/comparison.png", "ecdf_transfer/rois.png"):
                 path = target / "artifacts" / relative
                 path.parent.mkdir(parents=True, exist_ok=True)
-                path.write_bytes(b"test-image")
+                path.write_bytes((root / "artifacts/ecdf_study/comparison.png").read_bytes())
+            for relative in ("docs/portfolio-tr.md", "docs/real-data-provenance.md",
+                             "artifacts/coverage/README.md",
+                             "artifacts/ecdf_study/README.md",
+                             "artifacts/ecdf_transfer/README.md",
+                             "artifacts/sequence/README.md",
+                             "artifacts/native_profile/README.md"):
+                path = target / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text("# test link\n", encoding="utf-8")
             page = module.build_portfolio(target).read_text(encoding="utf-8")
             self.assertEqual(page.count('role="tab"'), 8)
             self.assertEqual(page.count('role="tabpanel"'), 8)
@@ -77,6 +86,10 @@ class FinalReportTests(unittest.TestCase):
                              hashlib.sha256(page.encode("utf-8")).hexdigest())
             self.assertEqual(len(manifest["sources"]), 13)
             self.assertEqual(module.verify_portfolio(target), 13)
+            broken = page.replace('aria-controls="human"', 'aria-controls="missing"', 1)
+            with self.assertRaisesRegex(ValueError, "association mismatch"):
+                module.inspect_portfolio_html(broken.encode("utf-8"),
+                                              target / "artifacts/portfolio", target, 8)
             self.assertIn("LF-normalized", manifest["hash_basis"])
             for source in manifest["sources"]:
                 payload = module.evidence_bytes(target / source["path"])

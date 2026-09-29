@@ -198,7 +198,7 @@ data-free algorithm tests; measured-transfer artifacts were generated locally.
 
 | Requirement | Evidence | Result / limitation |
 |---|---|---|
-| PORT-002 | `test_final_reports.py`; `artifacts/portfolio/manifest.json`; generated `index.html` | Eight PNGs embedded as data URLs, eight tabs/panels, v0.16 scope text, input and HTML SHA-256 hashes. LF/CRLF-stable hashing and tamper rejection pass. Structural/offline checks pass; no fresh interactive browser end-to-end claim. |
+| PORT-002 | `test_final_reports.py`; `artifacts/portfolio/manifest.json`; generated `index.html` | Eight complete PNGs embedded as data URLs, eight matched tabs/panels, local links, v0.16 scope text, input and HTML SHA-256 hashes. LF/CRLF-stable hashing and tamper rejection pass. The browser automation policy blocked the local `file://` page, so no interactive browser end-to-end claim is made. |
 
 Local portfolio-refresh run: **124 tests and 169 subtests passed** with Agg;
 Ruff and Git whitespace checks passed.
