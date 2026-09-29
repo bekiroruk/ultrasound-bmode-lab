@@ -90,6 +90,12 @@ channel files remain outside Git.
 | MET-016 | Directional texture on fixed measured-image background ROIs shall be reported without turning decorrelation into independent sample counts. | Pair-inside-mask log-envelope Pearson curves, pair counts, grid spacing and 1/e lags are retained; a separate phantom homogeneous-speckle control is shown; no automatic bootstrap block choice. |
 | DATA-011 | Measured transfer shall retain acquisition scope and ROI selection provenance. | Two distinct EPFL volunteers, PICMUS cross-section and one physical phantom retain hashes, selected angles, probe/platform where available, ROI geometry and selection source; PICMUS subject independence is not presumed. |
 
+### v0.16 portfolio refresh
+
+| ID | Requirement | Acceptance |
+|---|---|---|
+| PORT-002 | The offline evidence viewer shall include the v0.15–0.16 findings without overstating uncertainty validity. | Eight embedded figures and matching accessible tabs; human and phantom RF transfer is labeled descriptive; no clinical or calibrated 95% claim; manifest hashes all input artifacts and generated HTML, and verification rejects a changed source. |
+
 ## Quality attributes
 
 - Reproducibility: fixed seeds, deterministic angle selection, immutable data checks, JSON/CSV

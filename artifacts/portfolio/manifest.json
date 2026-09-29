@@ -1,0 +1,74 @@
+{
+  "portfolio_version": "0.16",
+  "embedded_figure_count": 8,
+  "index_html_sha256": "dd8fcb00827ff40c65e08ead00beb906d6a1199a315d5a672f622884970d0b1a",
+  "hash_basis": "LF-normalized bytes for JSON/HTML; raw bytes for PNG",
+  "sources": [
+    {
+      "path": "artifacts/sequence/metrics.json",
+      "sha256": "be34039c3ef4f13896ab768a2fd895fb3e4d7149848a3ac9655ccc03d8fa1d60",
+      "canonical_bytes": 10910
+    },
+    {
+      "path": "artifacts/native_profile/metrics.json",
+      "sha256": "ab069cc7bf43eece222722965881846032dd4c5b9424205a10cd25eb79f892f4",
+      "canonical_bytes": 10873
+    },
+    {
+      "path": "artifacts/coverage/metrics.json",
+      "sha256": "857a80e8810dd320e28c354ab6fd80cfc96174623595020840307c51d953a020",
+      "canonical_bytes": 862644
+    },
+    {
+      "path": "artifacts/ecdf_study/metrics.json",
+      "sha256": "576683f6f775097685d09b27616d78ae24082417872579b5666d04153a851e6f",
+      "canonical_bytes": 253348
+    },
+    {
+      "path": "artifacts/ecdf_transfer/metrics.json",
+      "sha256": "43d3c3807934e9415e7f640086dfb02a2c7f83b065fef7e28285026ff90bec8d",
+      "canonical_bytes": 28169
+    },
+    {
+      "path": "artifacts/analytic_quality/PICMUS_carotid_cross_75_angles.png",
+      "sha256": "20ea7de94bee1c352a1272bcbd1c82663a52dbb7daca61ef10289724dc7271af",
+      "canonical_bytes": 374122
+    },
+    {
+      "path": "artifacts/interpolation_study/contrast_interpolation.png",
+      "sha256": "652922980efd08cc67df3eb645c8fd1325d33f91bde6e31f207ebf4153855c27",
+      "canonical_bytes": 582196
+    },
+    {
+      "path": "artifacts/coverage/coverage.png",
+      "sha256": "61fc13b3d799f08fce8dcdc4acae3d418780104fad41da5c6e36ba80e34af10d",
+      "canonical_bytes": 79356
+    },
+    {
+      "path": "artifacts/ecdf_study/comparison.png",
+      "sha256": "c2961d028f99e9f7c9c9d9ae969a90f781bf1fbc701a53ec049576abe57951c4",
+      "canonical_bytes": 64786
+    },
+    {
+      "path": "artifacts/ecdf_transfer/rois.png",
+      "sha256": "93162d2f75b5dd239785fca96225d039c9faf6a7a8075c003863495dd78d7968",
+      "canonical_bytes": 422455
+    },
+    {
+      "path": "artifacts/sequence/frames.png",
+      "sha256": "a64c3ed40e444911c2accdb9b845b03f9e4d860f2c923bb85f4b63030fd479e0",
+      "canonical_bytes": 722968
+    },
+    {
+      "path": "artifacts/sequence/profile.png",
+      "sha256": "8a5700903fb3694cbe3f3871d7d43f994928a5a8a04ca3513caa8d56b8d843ea",
+      "canonical_bytes": 140009
+    },
+    {
+      "path": "artifacts/native_profile/profile.png",
+      "sha256": "ba9a4d8aaf4376c81e09c04d8510d980c1bb8c231fa8beff6c85e399b992e4a8",
+      "canonical_bytes": 80458
+    }
+  ],
+  "scope": "Precomputed non-clinical evidence viewer; no RF reconstruction in browser"
+}

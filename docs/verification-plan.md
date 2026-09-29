@@ -193,3 +193,12 @@ installation has incomplete Tk resources, so GUI-backend tests require Agg.
 Local v0.16 run: **123 tests and 169 subtests passed** with Agg; Ruff and Git
 whitespace checks passed. Measured inputs are not redistributed and CI exercises
 data-free algorithm tests; measured-transfer artifacts were generated locally.
+
+## v0.16 portfolio refresh
+
+| Requirement | Evidence | Result / limitation |
+|---|---|---|
+| PORT-002 | `test_final_reports.py`; `artifacts/portfolio/manifest.json`; generated `index.html` | Eight PNGs embedded as data URLs, eight tabs/panels, v0.16 scope text, input and HTML SHA-256 hashes. LF/CRLF-stable hashing and tamper rejection pass. Structural/offline checks pass; no fresh interactive browser end-to-end claim. |
+
+Local portfolio-refresh run: **124 tests and 169 subtests passed** with Agg;
+Ruff and Git whitespace checks passed.

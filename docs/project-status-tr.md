@@ -4,6 +4,8 @@
 
 [Gerçek RF eCDF ve uzamsal doku aktarımı](ecdf-transfer-tr.md) iki ayrı EPFL
 gönüllüsü, PICMUS karotid kesiti ve fiziksel fantom üzerinde tamamlandı.
+Başlangıçta tanımlanan dört portföy paketi v0.13'te bitmişti; [çevrimdışı demo](../artifacts/portfolio/README.md)
+şimdi v0.16 kanıtlarıyla sekiz panele güncellendi ve kaynak-hash manifesti içeriyor.
 EPFL'de ince sıra bölmelerinde çok işaret değişimi görüldü; gerçek dağılımları
 tek-kesişimli olan eş-örneklemli sentetik kontrol de benzer değişimler üretti.
 Fantomun homojen speckle kontrolü yaklaşık 0,28/0,30 mm 1/e doku ölçeği

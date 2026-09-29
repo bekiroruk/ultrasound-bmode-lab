@@ -1,3 +1,4 @@
+import hashlib
 import importlib.util
 import json
 import tempfile
@@ -14,6 +15,22 @@ from ultrasound_bmode.sequence_cli import run_sequence
 
 
 class FinalReportTests(unittest.TestCase):
+    def test_portfolio_text_hash_is_line_ending_stable(self):
+        root = Path(__file__).resolve().parents[1]
+        spec = importlib.util.spec_from_file_location("portfolio", root / "scripts/build_portfolio.py")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        with tempfile.TemporaryDirectory() as directory:
+            text_path = Path(directory) / "evidence.json"
+            text_path.write_bytes(b"{\r\n  \"value\": 1\r\n}\r\n")
+            canonical = module.evidence_bytes(text_path)
+            self.assertEqual(canonical, b"{\n  \"value\": 1\n}\n")
+            text_path.write_bytes(canonical)
+            self.assertEqual(module.evidence_bytes(text_path), canonical)
+            image_path = Path(directory) / "figure.png"
+            image_path.write_bytes(b"\x89PNG\r\n")
+            self.assertEqual(module.evidence_bytes(image_path), b"\x89PNG\r\n")
+
     def test_agreement_rejects_changed_rf_and_display(self):
         expected = {"rf": np.ones((2, 3), dtype=complex), "bmode": np.zeros((2, 3))}
         self.assertTrue(agreement(expected, expected)["passed"])
@@ -32,22 +49,43 @@ class FinalReportTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             target = Path(directory)
             for relative in ("sequence/metrics.json", "native_profile/metrics.json",
-                             "coverage/metrics.json"):
+                             "coverage/metrics.json", "ecdf_study/metrics.json",
+                             "ecdf_transfer/metrics.json"):
                 path = target / "artifacts" / relative
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_bytes((root / "artifacts" / relative).read_bytes())
             for relative in ("analytic_quality/PICMUS_carotid_cross_75_angles.png",
                              "interpolation_study/contrast_interpolation.png",
                              "coverage/coverage.png", "sequence/frames.png",
-                             "sequence/profile.png", "native_profile/profile.png"):
+                             "sequence/profile.png", "native_profile/profile.png",
+                             "ecdf_study/comparison.png", "ecdf_transfer/rois.png"):
                 path = target / "artifacts" / relative
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_bytes(b"test-image")
             page = module.build_portfolio(target).read_text(encoding="utf-8")
-            self.assertEqual(page.count('role="tab"'), 6)
-            self.assertEqual(page.count('role="tabpanel"'), 6)
-            self.assertEqual(page.count("data:image/png;base64,"), 6)
+            self.assertEqual(page.count('role="tab"'), 8)
+            self.assertEqual(page.count('role="tabpanel"'), 8)
+            self.assertEqual(page.count("data:image/png;base64,"), 8)
             self.assertNotIn('<img src="http', page)
+            self.assertIn("ARAŞTIRMA PORTFÖYÜ · v0.16", page)
+            self.assertIn("Bölmesiz eCDF deneyi", page)
+            self.assertIn("Gerçek RF aktarımı", page)
+            manifest = json.loads((target / "artifacts/portfolio/manifest.json")
+                                  .read_text(encoding="utf-8"))
+            self.assertEqual(manifest["embedded_figure_count"], 8)
+            self.assertEqual(manifest["index_html_sha256"],
+                             hashlib.sha256(page.encode("utf-8")).hexdigest())
+            self.assertEqual(len(manifest["sources"]), 13)
+            self.assertEqual(module.verify_portfolio(target), 13)
+            self.assertIn("LF-normalized", manifest["hash_basis"])
+            for source in manifest["sources"]:
+                payload = module.evidence_bytes(target / source["path"])
+                self.assertEqual(source["sha256"], hashlib.sha256(payload).hexdigest())
+                self.assertEqual(source["canonical_bytes"], len(payload))
+            tampered = target / "artifacts/ecdf_transfer/rois.png"
+            tampered.write_bytes(b"changed-image")
+            with self.assertRaisesRegex(ValueError, "checksum mismatch"):
+                module.verify_portfolio(target)
 
     @unittest.skipUnless(numba_available(), "Numba extra not installed")
     def test_sequence_report_with_small_generated_uff(self):

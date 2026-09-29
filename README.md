@@ -90,7 +90,7 @@ Reproduce with `ultrasound-rayleigh-coverage --seed 20261003`.
 | Exploratory analytic lateral FWHM, F/0.8 | **0.572 mm** — 11 angles; defaults unchanged |
 | Offline sequence playback | **19.29 ms median / 22.85 ms p95**, 256×128 analytic cubic, 200 frames, 8 threads |
 | C++ measured-data equivalence | **9 checks passed**; linear/cubic, 11/75 angles and SWE checkpoints |
-| Automated tests | **123 tests + 169 subtests passed locally**; native C++ is built in CI |
+| Automated tests | **124 tests + 169 subtests passed locally**; native C++ is built in CI |
 
 Runtimes are hardware-dependent single-host measurements. Image metrics compare normalized
 display images and are research evidence, not clinical-performance claims.
@@ -112,9 +112,12 @@ The optional **C++17/OpenMP** focusing prototype passes all measured parity chec
 **slower than Numba** on this host. Hilbert and display processing remain Python/SciPy.
 No GPU execution or embedded deployment is claimed; linear remains the default.
 
-Open `artifacts/portfolio/index.html` locally for the six-tab offline demo. Its scientific
+Open `artifacts/portfolio/index.html` locally for the eight-tab offline demo. Its scientific
 figures are embedded: no server, network or raw data is needed. GitHub displays HTML source
 rather than hosting this demo.
+The [evidence manifest](artifacts/portfolio/manifest.json) records SHA-256 hashes of
+the embedded inputs and generated page; check it with
+`python scripts/build_portfolio.py --verify`.
 
 ```bash
 python -m pip install -e ".[dev,accelerated]"
