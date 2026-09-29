@@ -1,6 +1,15 @@
 # Ultrasound B-mode Lab — proje özeti
 
-## Güncel araştırma notu — v0.14
+## Güncel araştırma notu — v0.15
+
+[Bölmesiz eCDF deneyi](ecdf-audit-tr.md) ve ölçülmüş PICMUS fantom
+karşılaştırması tamamlandı. Tek eşikli eCDF ölçüsü sentetik bağıntılı
+Rayleigh alanında histogram yanlılığını azalttı; bağıntı farkındalıklı
+muhafazakâr aralık ise `[0,1]` genişliğinde ve kullanışsız kaldı.
+Fantomda yalnızca betimsel nokta tahminleri raporlandı. Varsayılan metrik
+ve klinik olmayan araştırma kapsamı değişmedi.
+
+## Önceki araştırma notu — v0.14
 
 [gCNR belirsizlik takibi](rayleigh-coverage-tr.md) tamamlandı. Rayleigh
 varsayımı altında yeni tahmin bağımsız alanlarda %96 kapsamaya ulaştı; gerçek

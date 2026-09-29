@@ -169,3 +169,15 @@ interval. The previous 64-bin measured-image implementation remains unchanged.
 
 Local v0.14 run: **113 tests and 169 subtests passed**; Ruff and Git whitespace
 checks passed. The generated numerical summaries and figure were inspected.
+
+## v0.15 bin-free audit
+
+| Requirement | Evidence | Result / limitation |
+|---|---|---|
+| MET-013 | `test_ecdf_study.py` | Ties and monotone transforms preserve the eCDF result. Alternating discrete supports show 0.5 threshold separation despite density-overlap gCNR 1. |
+| MET-014 | `artifacts/ecdf_study/metrics.json`; `test_ecdf_study.py` | 200 independent fields/scenario, analytic truths, DKW/Wilson intervals and widths. Dependent pixels do not meet DKW assumptions; source-cell oracle gives width 1. |
+| DATA-010 | `artifacts/ecdf_study/metrics.json` | Measured PICMUS contrast phantom RF, fixed shallow/deep cyst masks, 11-angle analytic reconstruction and embedded UFF reference retained with source hash. No measured interval. |
+
+Local v0.15 run: **119 tests and 169 subtests passed** with noninteractive Agg
+plotting; Ruff and Git whitespace checks passed. The existing Windows Python
+installation has incomplete Tk resources, so GUI-backend tests require Agg.

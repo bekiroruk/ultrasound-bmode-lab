@@ -23,6 +23,11 @@ are present and verified.
 
 ## Open risk work
 
+- v0.15's bin-free point metric can understate multi-crossing gCNR. The
+  mathematically conservative independence-aware interval is uninformative
+  (`[0,1]`) for the small synthetic source-cell sample, while applying its
+  IID guarantee to dependent image pixels is invalid. Do not promote it to
+  measured-image inference without a separately validated dependence model.
 - v0.14 Rayleigh-model testing reduced estimator bias in its own generating model,
   but aligned correlated tiles reached only 89% and non-Rayleigh data 45% on the
   final independent seed. Do not substitute its intervals for measured-image

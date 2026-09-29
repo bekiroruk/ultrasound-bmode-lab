@@ -1,6 +1,6 @@
 # Software requirements specification
 
-Status: research baseline, revision 12 (Rayleigh-model coverage stress test)
+Status: research baseline, revision 13 (bin-free threshold-separation audit)
 
 This specification defines verifiable behavior for the ultrasound B-mode laboratory. The
 software is educational/research software and is not intended for diagnosis, treatment,
@@ -73,6 +73,14 @@ channel files remain outside Git.
 | ID | Requirement | Acceptance |
 |---|---|---|
 | MET-012 | Rayleigh-model gCNR candidate shall expose its distribution assumption and be compared to known truth on independent evaluation seeds. | Analytical overlap is checked against numerical density integration; IID, spatial dependence and misspecified lognormal scenarios report percentile/basic coverage, Wilson intervals and bias. The production histogram metric is not replaced. |
+
+### v0.15 bin-free audit
+
+| ID | Requirement | Acceptance |
+|---|---|---|
+| MET-013 | A bin-free eCDF threshold-separation candidate shall preserve strict monotone-transform order and disclose its one-crossing limitation. | Ties and transform invariance pass; a multimodal counterexample demonstrates that it is not general density-overlap gCNR. |
+| MET-014 | Conservative DKW intervals shall be evaluated only with their independence condition stated. | Fixed-seed IID Rayleigh/lognormal and offset-tile scenarios retain known truth, point bias, observed coverage, Wilson intervals, width and source-cell oracle diagnostic; no measured-data calibration claim. |
+| DATA-010 | The candidate shall be compared descriptively on measured physical phantom RF. | PICMUS file hash, angle indices, reconstruction settings, fixed cyst ROIs and histogram/eCDF point estimates are stored; no reference truth or confidence interval inferred. |
 
 ## Quality attributes
 

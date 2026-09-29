@@ -28,6 +28,16 @@ without changing its numerical result.
 
 ## Evidence at a glance
 
+**v0.15 bin-free follow-up:** a one-threshold eCDF contrast estimate is now audited
+on 200 independently generated fields per scenario and a measured PICMUS physical
+phantom. In the correlated synthetic case, its point-estimate bias was **+0.114**
+versus **+0.279** for the 64-bin histogram, but a dependence-aware conservative
+interval spanned **[0, 1]**. The measured 11-angle deep-cyst estimates were
+**0.931 eCDF threshold separation** versus **0.926 histogram gCNR**; this is a
+descriptive comparison, not ground-truth accuracy or a clinical confidence interval.
+[Full audit and limits](docs/ecdf-audit-tr.md). Reproduce with
+`ultrasound-ecdf-study --phantom-path data/raw/PICMUS_experiment_contrast_speckle.uff`.
+
 **v0.14 uncertainty follow-up:** a model-assisted Rayleigh gCNR estimator and spatial
 intervals were evaluated on a new, independently seeded synthetic validation set.
 IID Rayleigh coverage was **96%**; known 4×4 correlated tiles were **89%** even when
@@ -69,7 +79,7 @@ Reproduce with `ultrasound-rayleigh-coverage --seed 20261003`.
 | Exploratory analytic lateral FWHM, F/0.8 | **0.572 mm** — 11 angles; defaults unchanged |
 | Offline sequence playback | **19.29 ms median / 22.85 ms p95**, 256×128 analytic cubic, 200 frames, 8 threads |
 | C++ measured-data equivalence | **9 checks passed**; linear/cubic, 11/75 angles and SWE checkpoints |
-| Automated tests | **113 tests + 169 subtests passed locally**; native C++ is built in CI |
+| Automated tests | **119 tests + 169 subtests passed locally**; native C++ is built in CI |
 
 Runtimes are hardware-dependent single-host measurements. Image metrics compare normalized
 display images and are research evidence, not clinical-performance claims.
